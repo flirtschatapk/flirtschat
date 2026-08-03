@@ -1,0 +1,12 @@
+.global-dashboard-clean .global-tab-search input,
+.global-dashboard-clean .global-tab-search input:focus,
+.global-dashboard-clean .global-tab-search input:focus-visible {
+  outline: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.global-dashboard-clean .global-tab-search:focus-within {
+  border-color: #ff4fa7;
+  box-shadow: 0 0 0 2px rgba(255,62,158,.12),0 0 18px rgba(155,92,255,.1);
+}

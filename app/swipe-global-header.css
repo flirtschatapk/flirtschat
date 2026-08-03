@@ -1,0 +1,115 @@
+.discover-page-v2 .discover-unified-header {
+  min-height: 106px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 64px 38px;
+  gap: 4px;
+  border-bottom: 0;
+}
+
+.discover-page-v2 .discover-actions-header {
+  grid-row: 1;
+  width: 100%;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.discover-page-v2 .discover-actions-header > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.discover-page-v2 .discover-unified-header .discover-tabs {
+  grid-row: 2;
+  width: 100%;
+  max-width: 560px;
+  height: 38px;
+  margin: 0;
+  justify-self: start;
+  gap: 3px !important;
+  align-items: center;
+}
+
+.discover-page-v2 .discover-unified-header .discover-tabs button {
+  flex-basis: auto !important;
+  min-width: 0 !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  padding-inline: 11px !important;
+  line-height: 1 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+@media (max-width: 380px) {
+  .discover-page-v2 .discover-unified-header .discover-tabs button {
+    height: 29px !important;
+    min-height: 29px !important;
+    padding-inline: 9px !important;
+  }
+}
+
+.discover-page-v2 .discover-metallic-action {
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 28%,#393939 0%,#202020 52%,#0c0c0c 100%);
+  box-shadow: inset 1px 1px 1px rgba(255,255,255,.17),inset -4px -5px 9px rgba(0,0,0,.7),0 5px 13px rgba(0,0,0,.48);
+}
+
+.discover-page-v2 .discover-metallic-action.premium {
+  color: #facc15;
+  border-color: rgba(250,204,21,.42);
+  background: radial-gradient(circle at 36% 28%,#514717 0%,#242111 48%,#0c0c0a 100%);
+  box-shadow: inset 1px 1px 1px rgba(255,255,255,.19),inset -4px -5px 9px rgba(0,0,0,.72),0 0 16px rgba(250,185,21,.16),0 5px 13px rgba(0,0,0,.48);
+}
+
+.discover-page-v2 .discover-metallic-action.premium svg {
+  fill: #facc15;
+  filter: drop-shadow(0 0 5px rgba(250,204,21,.45));
+}
+
+.discover-page-v2 .discover-notification-action {
+  color: #ff55aa;
+  border-color: rgba(255,45,141,.3);
+}
+
+.discover-page-v2 .discover-profile-photo {
+  overflow: hidden;
+  padding: 0;
+  border: 2px solid #a855f7;
+  border-radius: 50%;
+  background: #111;
+}
+
+.discover-page-v2 .discover-profile-photo .profile-image {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
+
+@media (max-width: 700px) {
+  .discover-page-v2 .discover-shell { padding-inline: 10px; }
+  .discover-page-v2 .discover-unified-header { min-height: 98px; grid-template-rows: 58px 36px; gap: 2px; }
+  .discover-page-v2 .discover-actions-header { height: 58px; }
+  .discover-page-v2 .discover-auth-brand strong { font-size: 18px; }
+  .discover-page-v2 .discover-actions-header > div { gap: 7px; }
+  .discover-page-v2 .discover-metallic-action,
+  .discover-page-v2 .discover-profile-photo { width: 38px; height: 38px; }
+  .discover-page-v2 .discover-unified-header .discover-tabs { max-width: none; overflow-x: auto; }
+  .discover-page-v2 .discover-unified-header .discover-tabs button { height: 30px !important; min-height: 30px !important; }
+  .discover-page-v2 .discover-stage { height: calc(100svh - 169px - env(safe-area-inset-bottom)); }
+}
+
+@media (max-width: 340px) {
+  .discover-page-v2 .discover-shell { padding-inline: 8px; }
+  .discover-page-v2 .discover-auth-brand strong { font-size: 16px; }
+  .discover-page-v2 .discover-actions-header > div { gap: 5px; }
+  .discover-page-v2 .discover-metallic-action,
+  .discover-page-v2 .discover-profile-photo { width: 36px; height: 36px; }
+}

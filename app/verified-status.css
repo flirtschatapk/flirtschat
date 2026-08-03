@@ -1,0 +1,33 @@
+/* Shared verified identity treatment across Flirtschat. */
+svg.lucide-badge-check,
+.lucide-badge-check {
+  color: #22e68a !important;
+  fill: rgba(34, 230, 138, 0.18) !important;
+  filter: drop-shadow(0 0 5px rgba(34, 230, 138, 0.35));
+}
+
+.fc-reply-preview {
+  max-width: 100%;
+  display: flex !important;
+  align-items: flex-start;
+  gap: 5px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.fc-reply-preview svg {
+  width: 11px;
+  min-width: 11px;
+  margin-top: 1px;
+}
+
+.fc-message-meta .waiting-status,
+.fc-message-meta .opened-status {
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.fc-message-meta .waiting-status { color: #8b838e; }
+.fc-message-meta .opened-status { color: #22e68a; }

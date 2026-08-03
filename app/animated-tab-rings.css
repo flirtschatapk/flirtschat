@@ -1,0 +1,109 @@
+@property --discovery-tab-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes discovery-tab-ring {
+  to { --discovery-tab-angle: 360deg; }
+}
+
+.discover-page-v2 .discover-tabs-five {
+  width: min(540px, 100%);
+  display: flex;
+  grid-template-columns: none;
+  gap: 7px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.discover-page-v2 .discover-tabs-five::-webkit-scrollbar,
+.global-dashboard-clean .global-feed-controls > div::-webkit-scrollbar {
+  display: none;
+}
+
+.discover-page-v2 .discover-tabs-five button {
+  flex: 0 0 auto;
+  min-width: 82px;
+  padding: 0 16px;
+  border: 1.5px solid transparent;
+  border-radius: 999px;
+  scroll-snap-align: center;
+}
+
+.discover-page-v2 .discover-tabs-five button.active,
+.global-dashboard-clean .global-feed-controls [role="tab"].active {
+  --discovery-tab-angle: 0deg;
+  color: #fff;
+  border: 1.5px solid transparent;
+  border-radius: 999px;
+  background:
+    linear-gradient(#09060e, #09060e) padding-box,
+    conic-gradient(from var(--discovery-tab-angle), #ff24b5, #9b52ff, #29c8ff, #205fff, #ff24b5) border-box !important;
+  box-shadow: 0 0 13px rgba(155,82,255,.16) !important;
+  animation: discovery-tab-ring 2.4s linear infinite;
+}
+
+.discover-page-v2 .discover-tabs-five button.active:after {
+  display: none;
+}
+
+.global-dashboard-clean .global-feed-controls > div {
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.global-dashboard-clean .global-feed-controls [role="tab"] {
+  flex: 0 0 auto;
+  min-width: 76px;
+  border: 1.5px solid transparent;
+  scroll-snap-align: center;
+}
+
+.global-dashboard-clean .global-auth-brand {
+  display: block;
+  width: max-content;
+  line-height: 1;
+}
+
+.global-dashboard-clean .global-auth-brand > strong {
+  font-size: clamp(21px, 2.2vw, 28px);
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: -1px;
+  background-image: linear-gradient(100deg,#ff1493 0%,#ff3d5a 10%,#ff7a18 20%,#ffd21f 30%,#45e06f 40%,#20e3d2 50%,#25b8ff 60%,#4263ff 70%,#8a4dff 80%,#d936ff 90%,#ff1493 100%);
+  background-size: 300% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: flirtschat-brand-flow 4.8s ease-in-out infinite;
+}
+
+@media (max-width: 700px) {
+  .discover-page-v2 .discover-tabs-five button {
+    min-width: 76px;
+    padding-inline: 13px;
+  }
+  .global-dashboard-clean .global-feed-controls > div {
+    display: flex;
+  }
+  .global-dashboard-clean .global-auth-brand > strong {
+    font-size: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .discover-page-v2 .discover-tabs-five button.active,
+  .global-dashboard-clean .global-feed-controls [role="tab"].active,
+  .global-dashboard-clean .global-auth-brand > strong {
+    animation: none;
+  }
+}

@@ -1,0 +1,2 @@
+export type UploadResult={id:string;name:string;size:number;preview:string};
+export async function uploadProfilePhoto(file:File,onProgress:(value:number)=>void):Promise<UploadResult>{for(const n of [20,45,70,100]){await new Promise(r=>setTimeout(r,120));onProgress(n)}const preview=await new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(new Error("Could not read this photo"));reader.readAsDataURL(file)});return{id:crypto.randomUUID(),name:file.name,size:file.size,preview}}

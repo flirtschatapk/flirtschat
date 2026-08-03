@@ -1,0 +1,1 @@
+import type{Metadata}from"next";import{AdminSystemSettingsPage}from"@/components/admin/admin-system-settings";export const metadata:Metadata={title:"System Settings",description:"Configure FLIRTSCHAT services and integrations."};export default function AdminSettingsPage(){return <AdminSystemSettingsPage/>}

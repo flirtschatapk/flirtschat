@@ -1,0 +1,2 @@
+import { steps } from "@/data/landing-page";
+export function HowItWorks(){return <section className="section works-section"><div className="container"><div className="section-heading"><span className="kicker">Three easy moves</span><h2>From hello to <em>who knows?</em></h2></div><div className="timeline">{steps.map((s,i)=><article className="timeline-step" key={s.n}><span className="step-number">{s.n}</span><div className="step-art"><i>{i===0?"✦":i===1?"♥":"☺"}</i></div><h3>{s.title}</h3><p>{s.text}</p></article>)}</div></div></section>}

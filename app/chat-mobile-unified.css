@@ -1,0 +1,341 @@
+/* Keep the desktop chat experience visually identical to the mobile flow. */
+.fc-chat-page {
+  background: #000 !important;
+  background-image: none !important;
+}
+
+.fc-chat-page.no-route .fc-chat-layout {
+  display: block !important;
+  width: min(520px, 100%) !important;
+  height: 100% !important;
+  margin-inline: auto !important;
+  background: #000 !important;
+}
+
+.fc-chat-page.no-route .fc-conversations {
+  width: 100% !important;
+  height: 100% !important;
+  border: 0 !important;
+  background: #000 !important;
+}
+
+.fc-chat-page.no-route .fc-thread {
+  display: none !important;
+}
+
+.fc-chat-page.no-route .fc-conversations > header {
+  height: 62px !important;
+  border-bottom: 1px solid #161616 !important;
+  background: #000 !important;
+}
+
+.fc-chat-page .fc-list-back {
+  width: 38px !important;
+  height: 38px !important;
+  border: 1px solid #252525 !important;
+  border-radius: 50% !important;
+  background: #121212 !important;
+  color: #fff !important;
+  display: grid !important;
+  place-items: center !important;
+  text-decoration: none !important;
+}
+
+.fc-chat-page .fc-list-back:hover {
+  background: #1a1a1a !important;
+}
+
+.fc-chat-page .fc-list-back:focus-visible {
+  outline: 2px solid #ff2d8d !important;
+  outline-offset: 2px !important;
+}
+
+.fc-chat-page .fc-list-back svg {
+  width: 19px !important;
+  height: 19px !important;
+}
+
+.fc-chat-page.no-route .fc-chat-search {
+  height: 43px !important;
+  border-color: #252525 !important;
+  background: #171717 !important;
+}
+
+.fc-chat-page.no-route .fc-chat-tabs {
+  height: 42px !important;
+  padding-inline: 6px !important;
+  gap: 3px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.fc-chat-page.no-route .fc-chat-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.fc-chat-page.no-route .fc-chat-tabs button {
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+  height: 32px !important;
+  padding-inline: 9px !important;
+  border: 1.5px solid transparent !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #817984 !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+  letter-spacing: .1px !important;
+}
+
+.fc-chat-page.no-route .fc-chat-tabs button.active {
+  --discovery-tab-angle: 0deg;
+  color: #fff !important;
+  border: 1.5px solid transparent !important;
+  background: linear-gradient(#000, #000) padding-box,
+    conic-gradient(from var(--discovery-tab-angle), #ff24b5, #9b52ff, #29c8ff, #205fff, #ff24b5) border-box !important;
+  box-shadow: 0 0 13px rgba(155,82,255,.16) !important;
+  animation: discovery-tab-ring 2.4s linear infinite;
+}
+
+.fc-chat-page.no-route .fc-conversation-scroll {
+  padding: 2px 9px 22px !important;
+  background: #000 !important;
+}
+
+.fc-chat-page.no-route .fc-conversation-row {
+  height: 73px !important;
+}
+
+.fc-chat-page.no-route .fc-conversation-row.active {
+  background: transparent !important;
+}
+
+.fc-chat-page.no-route .fc-conversation-row:hover {
+  background: #101010 !important;
+}
+
+.fc-chat-page.has-route .fc-chat-layout,
+.fc-chat-page.has-route .fc-thread {
+  width: min(700px, 100%) !important;
+  max-width: 700px !important;
+}
+
+.fc-chat-page.has-route .fc-thread {
+  border: 0 !important;
+}
+
+.fc-chat-page.has-route .fc-thread-header > a:first-child {
+  display: grid !important;
+}
+
+@media (min-width: 761px) {
+  .fc-chat-page.no-route .fc-chat-layout {
+    display: grid !important;
+    grid-template-columns: minmax(300px, 360px) minmax(0, 700px) !important;
+    width: min(1060px, 100%) !important;
+    max-width: 1060px !important;
+    margin-inline: auto !important;
+  }
+
+  .fc-chat-page.no-route .fc-conversations {
+    min-width: 0 !important;
+    border-right: 1px solid #1f1f1f !important;
+  }
+
+  .fc-chat-page.no-route .fc-thread {
+    display: flex !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 700px !important;
+    border: 0 !important;
+    background: #000 !important;
+  }
+
+  .fc-chat-page.no-route .fc-thread-header {
+    height: 64px !important;
+    min-height: 64px !important;
+    padding-inline: 10px !important;
+    background: #000 !important;
+  }
+
+  .fc-chat-page.no-route .fc-thread-header > a:first-child {
+    display: grid !important;
+  }
+
+  .fc-chat-page.no-route .fc-match-banner {
+    min-height: 67px !important;
+    margin-inline: 9px !important;
+  }
+
+  .fc-chat-page.no-route .fc-message-list {
+    padding-inline: 8px !important;
+    background: #000 !important;
+  }
+
+  .fc-chat-page.no-route .fc-chat-input {
+    min-height: 68px !important;
+    background: #000 !important;
+  }
+
+  .fc-chat-page.no-route .fc-bottom-nav { display: none !important; }
+  .fc-chat-page.has-route .fc-thread-header { padding-inline: 10px !important; }
+  .fc-chat-page.has-route .fc-message-list { padding-inline: 8px !important; }
+}
+
+@media (max-width: 760px) {
+  .fc-chat-page.no-route .fc-chat-layout { width: 100% !important; }
+
+  .fc-chat-page.no-route .fc-chat-tabs button {
+    height: 30px !important;
+    min-height: 30px !important;
+    font-size: 11px !important;
+    padding-inline: 8px !important;
+  }
+}
+
+@media (max-width: 350px) {
+  .fc-chat-page.no-route .fc-chat-tabs {
+    padding-inline: 4px !important;
+    gap: 2px !important;
+  }
+
+  .fc-chat-page.no-route .fc-chat-tabs button {
+    height: 29px !important;
+    min-height: 29px !important;
+    padding-inline: 7px !important;
+    font-size: 10px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-chat-page.no-route .fc-chat-tabs button.active {
+    animation: none !important;
+  }
+}
+
+/* Desktop conversation workspace: persistent list on the left, active thread on the right. */
+@media (min-width: 761px) {
+  .fc-chat-page.has-route .fc-chat-layout {
+    display: grid !important;
+    grid-template-columns: minmax(300px, 350px) minmax(0, 700px) !important;
+    width: min(1050px, 100%) !important;
+    max-width: 1050px !important;
+    height: 100% !important;
+    margin-inline: auto !important;
+    background: #000 !important;
+    border-inline: 1px solid #171717 !important;
+    box-shadow: 0 0 70px rgba(0,0,0,.5) !important;
+  }
+
+  .fc-chat-page.has-route .fc-conversations {
+    display: flex !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 100% !important;
+    border-right: 1px solid #202020 !important;
+    background: #050505 !important;
+  }
+
+  .fc-chat-page.has-route .fc-conversations > header {
+    height: 64px !important;
+    min-height: 64px !important;
+    border-bottom: 1px solid #181818 !important;
+    background: #050505 !important;
+  }
+
+  .fc-chat-page.has-route .fc-chat-search {
+    height: 42px !important;
+    border-color: #242424 !important;
+    background: #111 !important;
+  }
+
+  .fc-chat-page.has-route .fc-chat-tabs {
+    height: 42px !important;
+    padding-inline: 8px !important;
+    gap: 3px !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+  }
+
+  .fc-chat-page.has-route .fc-chat-tabs::-webkit-scrollbar { display: none; }
+
+  .fc-chat-page.has-route .fc-chat-tabs button {
+    flex: 0 0 auto !important;
+    height: 30px !important;
+    padding-inline: 9px !important;
+    border-radius: 999px !important;
+    font-size: 10px !important;
+  }
+
+  .fc-chat-page.has-route .fc-conversation-scroll {
+    min-height: 0 !important;
+    padding: 3px 8px 18px !important;
+    background: #050505 !important;
+  }
+
+  .fc-chat-page.has-route .fc-conversation-row {
+    height: 68px !important;
+  }
+
+  .fc-chat-page.has-route .fc-conversation-row.active {
+    background: linear-gradient(100deg,rgba(255,55,157,.15),rgba(145,75,255,.08)) !important;
+    box-shadow: inset 3px 0 #ff3e9e !important;
+  }
+
+  .fc-chat-page.has-route .fc-list-avatar {
+    width: 45px !important;
+    height: 45px !important;
+  }
+
+  .fc-chat-page.has-route .fc-conversation-row > a {
+    grid-template-columns: 47px minmax(0,1fr) auto !important;
+    gap: 8px !important;
+    padding-block: 7px !important;
+  }
+
+  .fc-chat-page.has-route .fc-thread {
+    display: flex !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    height: 100% !important;
+    margin: 0 !important;
+    border: 0 !important;
+    background: #000 !important;
+  }
+
+  .fc-chat-page.has-route .fc-thread-header > a:first-child {
+    display: none !important;
+  }
+
+  .fc-chat-page.has-route .fc-thread-header {
+    grid-template-columns: minmax(0,1fr) 40px !important;
+    padding-inline: 15px !important;
+  }
+
+  .fc-chat-page.has-route .fc-message-list {
+    padding: 4px 14px 20px !important;
+  }
+
+  .fc-chat-page.has-route .fc-chat-input {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 100% !important;
+    min-height: 67px !important;
+    transform: none !important;
+    flex: none !important;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 900px) {
+  .fc-chat-page.has-route .fc-chat-layout,
+  .fc-chat-page.no-route .fc-chat-layout {
+    grid-template-columns: 300px minmax(0,1fr) !important;
+  }
+}

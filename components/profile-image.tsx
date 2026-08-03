@@ -1,0 +1,2 @@
+import Image from "next/image";
+export function ProfileImage({position="0% 0%",className="",alt="Flirtschat member",src="/images/profiles.png"}:{position?:string;className?:string;alt?:string;src?:string}){return <span className={`profile-image ${className}`}><Image src={src} alt={alt} fill sizes="(max-width: 768px) 80vw, 360px" style={{objectPosition:position}} priority unoptimized={src.startsWith("/api/")}/></span>}

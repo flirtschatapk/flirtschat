@@ -1,0 +1,62 @@
+.public-profile-page a,
+.public-profile-page a:hover,
+.public-profile-page a:focus,
+.public-profile-page button,
+.public-profile-page button:hover,
+.public-profile-page button:focus {
+  text-decoration: none !important;
+  text-decoration-line: none !important;
+  border-bottom-style: none;
+}
+
+.public-like-total {
+  cursor: pointer;
+}
+
+.public-profile-page .public-like-total,
+.public-profile-page .public-like-total:hover,
+.public-profile-page .public-like-total:focus {
+  width: 52px !important;
+  min-width: 52px !important;
+  height: 38px !important;
+  padding: 0 8px !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-bottom-style: solid !important;
+  border-color: rgba(255, 255, 255, .12) !important;
+  border-radius: 12px !important;
+  background: #000 !important;
+  color: #fff !important;
+  box-shadow: 0 7px 18px rgba(0, 0, 0, .4) !important;
+}
+
+.public-profile-page .public-like-total svg {
+  width: 15px !important;
+  height: 15px !important;
+  color: #fff !important;
+  fill: transparent !important;
+  stroke: #fff !important;
+}
+
+.public-profile-page .public-like-total.loved,
+.public-profile-page .public-like-total.loved:hover,
+.public-profile-page .public-like-total.loved:focus {
+  border-color: rgba(255, 48, 79, .32) !important;
+  background: #000 !important;
+  color: #fff !important;
+  animation: profile-like-pop .3s ease;
+}
+
+.public-profile-page .public-like-total.loved svg {
+  color: #ff304f !important;
+  fill: #ff304f !important;
+  stroke: #ff304f !important;
+}
+
+@keyframes profile-like-pop {
+  50% { transform: scale(1.12); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-like-total.loved { animation: none; }
+}

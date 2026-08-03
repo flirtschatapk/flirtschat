@@ -1,0 +1,1 @@
+import type{Metadata}from"next";import{AdminSecurity}from"@/components/admin/admin-security";export const metadata:Metadata={title:"Security Center",description:"Manage security logs, access controls and resilience."};export default function SecurityPage(){return <AdminSecurity/>}

@@ -1,0 +1,2 @@
+const steps=["Basic info","About you","Here to find"];
+export function SignupProgress({step}:{step:number}){return <div className="signup-progress" aria-label={`Step ${step} of 3`}><div className="progress-track"><i style={{width:`${(step-1)*50}%`}}/></div>{steps.map((label,index)=><div className={`progress-step ${step>=index+1?"active":""}`} key={label}><span>{index+1}</span><small>{label}</small></div>)}</div>}

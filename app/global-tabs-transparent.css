@@ -1,0 +1,25 @@
+.global-dashboard-clean .global-feed-controls [role="tab"],
+.global-dashboard-clean .global-feed-controls [role="tab"].active {
+  position: relative;
+  isolation: isolate;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.global-dashboard-clean .global-feed-controls [role="tab"].active {
+  border-color: transparent;
+}
+
+.global-dashboard-clean .global-feed-controls [role="tab"].active::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -1.5px;
+  padding: 1.5px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--discovery-tab-angle),#ff24b5,#9b52ff,#29c8ff,#205fff,#ff24b5);
+  -webkit-mask: linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}

@@ -1,0 +1,10 @@
+/* Keep every app screen clean: decorative dots, floating symbols and background ornaments are removed. */
+.discover-particles,
+.onboarding-hearts,
+.float-heart,
+.orbit,
+.hero-glow,
+.crown-spark,
+.dating-hero-orbit {
+  display: none !important;
+}

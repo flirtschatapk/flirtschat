@@ -1,0 +1,1 @@
+import type{Metadata}from"next";import{AdminSupport}from"@/components/admin/admin-support";export const metadata:Metadata={title:"Support Center",description:"Manage support tickets, chats, feedback and contact requests."};export default function SupportPage(){return <AdminSupport/>}

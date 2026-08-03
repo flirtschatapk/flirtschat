@@ -1,0 +1,5 @@
+"use client";
+import {useCallback,useEffect,useState} from "react";
+const KEY="flirtschat:profile-likes";const EVENT="flirtschat:profile-likes-change";
+function read(){if(typeof window==="undefined")return{} as Record<string,boolean>;try{return JSON.parse(localStorage.getItem(KEY)||"{}") as Record<string,boolean>}catch{return{}}}
+export function useProfileLike(profileId:string,baseCount:number){const [loved,setLoved]=useState(false);useEffect(()=>{const sync=()=>setLoved(Boolean(read()[profileId]));sync();window.addEventListener("storage",sync);window.addEventListener(EVENT,sync);return()=>{window.removeEventListener("storage",sync);window.removeEventListener(EVENT,sync)}},[profileId]);const toggle=useCallback(()=>{const current=read(),next=!current[profileId],updated={...current,[profileId]:next};try{localStorage.setItem(KEY,JSON.stringify(updated))}catch{}setLoved(next);window.dispatchEvent(new CustomEvent(EVENT,{detail:{profileId,loved:next}}))},[profileId]);return{loved,count:baseCount+(loved?1:0),toggle}}

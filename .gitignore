@@ -1,0 +1,10 @@
+.env
+.env.local
+.env.*.local
+.next/
+.next-dev/
+node_modules/
+*.log
+.supabase-cli/
+supabase/.temp/
+supabase/backups/
