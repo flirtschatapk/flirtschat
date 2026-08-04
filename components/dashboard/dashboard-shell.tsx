@@ -27,7 +27,7 @@ export function DashboardShell() {
     <DesktopSidebar mobileOpen={false} onClose={()=>{}}/>
     <div className="global-page-shell dashboard-container">
       <header className="global-page-header dashboard-top-header">
-        <div className="dashboard-header-start"><a className="global-page-brand global-auth-brand" href="/dashboard" aria-label="Flirtschat dashboard"><strong>FLIRTSCHAT</strong></a></div>
+        <div className="dashboard-header-start"><a className="global-page-brand global-auth-brand flirtschat-wordmark" href="/dashboard" aria-label="Flirtschat dashboard"><strong>FLIRTSCHAT</strong></a></div>
         <div className="dashboard-header-actions"><a className="dashboard-premium-action dashboard-metallic-action" href="/premium" aria-label="Upgrade to Premium"><Crown/></a><a className="dashboard-icon-button dashboard-metallic-action dashboard-notification-action" href="/notifications" aria-label="Notifications"><Bell/><i/></a><a className="dashboard-profile-avatar dashboard-profile-photo" href="/profile" aria-label="Open profile"><ProfileImage src={profile?.primaryPhotoUrl||null} alt={profile?.displayName||"Your profile"}/></a></div>
       </header>
 
