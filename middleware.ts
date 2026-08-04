@@ -8,7 +8,7 @@ function matches(pathname:string,prefix:string){return pathname===prefix||pathna
 
 export async function middleware(request:NextRequest){
   const pathname=request.nextUrl.pathname;
-  if(pathname==="/auth/callback")return NextResponse.next();
+  if(pathname==="/auth/callback"||pathname==="/auth/retry")return NextResponse.next();
   const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if(!url||!key)return NextResponse.next();
   let response=NextResponse.next({request});
@@ -26,7 +26,7 @@ export async function middleware(request:NextRequest){
     return response;
   }
   const{data:profile,error}=await supabase.from("fc_profiles").select("onboarding_completed").eq("id",user.id).maybeSingle();
-  if(error&&isProtected)return NextResponse.redirect(new URL("/auth/error?reason=profile_unavailable",request.url));
+  if(error&&isProtected)return NextResponse.redirect(new URL("/auth/retry",request.url));
   const complete=Boolean(profile?.onboarding_completed);
   if(!complete&&isProtected&&pathname!=="/onboarding")return NextResponse.redirect(new URL("/onboarding",request.url));
   if(complete&&pathname==="/onboarding")return NextResponse.redirect(new URL("/dashboard",request.url));

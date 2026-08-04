@@ -1,17 +1,17 @@
-import type {User} from "@supabase/supabase-js";
+import type {SupabaseClient,User} from "@supabase/supabase-js";
 import {createClient} from "@/lib/supabase/server";
 
 export type PostAuthDestination = "/onboarding" | "/dashboard";
 
-export async function getPostAuthDestination(userId:string):Promise<PostAuthDestination>{
-  const supabase=await createClient();
+export async function getPostAuthDestination(userId:string,client?:SupabaseClient):Promise<PostAuthDestination>{
+  const supabase=client??await createClient();
   const{data,error}=await supabase.from("fc_profiles").select("onboarding_completed").eq("id",userId).maybeSingle();
   if(error)throw new Error(`Profile lookup failed: ${error.code}`);
   return data?.onboarding_completed?"/dashboard":"/onboarding";
 }
 
-export async function ensureInitialProfile(user:User){
-  const supabase=await createClient();
+export async function ensureInitialProfile(user:User,client?:SupabaseClient){
+  const supabase=client??await createClient();
   const{data,error}=await supabase.from("fc_profiles").select("id").eq("id",user.id).maybeSingle();
   if(error)throw new Error(`Profile lookup failed: ${error.code}`);
   if(data)return;
