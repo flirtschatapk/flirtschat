@@ -1,0 +1,4 @@
+export type CurrentProfile={
+  id:string;displayName:string;username:string;bio:string;gender:string;interestedIn:string;dateOfBirth:string;country:string;city:string;languages:string[];interests:string[];relationshipGoal:string;occupation:string;education:string;minAge:number;maxAge:number;maxDistance:number;showMe:"Women"|"Men"|"Everyone";notificationsEnabled:boolean;locationPermission:boolean;profileVisible:boolean;onboardingCompleted:boolean;verified:boolean;premium:boolean;createdAt:string;updatedAt:string;primaryPhotoUrl:string|null;primaryPhotoKey:string|null;
+};
+export type CurrentProfileUpdate=Partial<Pick<CurrentProfile,"displayName"|"username"|"bio"|"gender"|"interestedIn"|"dateOfBirth"|"country"|"city"|"languages"|"interests"|"relationshipGoal"|"occupation"|"education"|"minAge"|"maxAge"|"maxDistance"|"showMe"|"notificationsEnabled"|"locationPermission"|"profileVisible">>;

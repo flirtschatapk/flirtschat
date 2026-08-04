@@ -1,20 +1,6 @@
 "use client";
 import {useEffect} from "react";
 import {Check,CloudUpload,ImageIcon,RefreshCw,WifiOff} from "lucide-react";
-
 export type UploadToastKind="uploading"|"success"|"slow"|"offline"|"large"|"format"|"failed";
-const content={
-  uploading:{icon:CloudUpload,message:"Uploading your photo…"},
-  success:{icon:Check,message:"Your photo is ready ✨"},
-  slow:{icon:RefreshCw,message:"📶 Your connection is a little slow. We're still uploading..."},
-  offline:{icon:WifiOff,message:"You’re offline. Reconnect to continue."},
-  large:{icon:ImageIcon,message:"Please choose a JPG, PNG or WEBP image under 5 MB."},
-  format:{icon:ImageIcon,message:"Please choose a JPG, PNG or WEBP image under 5 MB."},
-  failed:{icon:RefreshCw,message:"We couldn’t upload your photo right now. Please try again."},
-} as const;
-
-export function UploadToast({kind,onDismiss,onRetry}:{kind:UploadToastKind;onDismiss:()=>void;onRetry?:()=>void}){
-  useEffect(()=>{if("vibrate" in navigator)navigator.vibrate(kind==="success"?[30]:kind==="uploading"?[15]:[35,30,35]);const timer=window.setTimeout(onDismiss,3000);return()=>window.clearTimeout(timer)},[kind,onDismiss]);
-  const item=content[kind],Icon=item.icon;
-  return <div className={`fc-upload-toast ${kind}`} role={kind==="failed"||kind==="offline"?"alert":"status"}><i><Icon/></i><p>{item.message}</p>{kind==="failed"&&onRetry&&<button type="button" onClick={onRetry}><RefreshCw/> Retry Upload</button>}</div>;
-}
+const content={uploading:{icon:CloudUpload,message:"Uploading your photo…"},success:{icon:Check,message:"Your profile photo is ready ✨"},slow:{icon:RefreshCw,message:"Your connection is a little slow. We're still uploading…"},offline:{icon:WifiOff,message:"You’re offline. Reconnect to continue."},large:{icon:ImageIcon,message:"Please choose a JPG, PNG or WEBP image under 5 MB."},format:{icon:ImageIcon,message:"Please choose a JPG, PNG or WEBP image under 5 MB."},failed:{icon:RefreshCw,message:"We couldn’t upload your photo. Try again."}} as const;
+export function UploadToast({kind,onDismiss,onRetry}:{kind:UploadToastKind;onDismiss:()=>void;onRetry?:()=>void}){useEffect(()=>{if("vibrate" in navigator)navigator.vibrate(kind==="success"?[30]:kind==="uploading"?[15]:[35,30,35]);const timer=window.setTimeout(onDismiss,3000);return()=>window.clearTimeout(timer)},[kind,onDismiss]);const item=content[kind],Icon=item.icon;return <div className={`fc-upload-toast ${kind}`} role={kind==="failed"||kind==="offline"?"alert":"status"}><i><Icon/></i><p>{item.message}</p>{kind==="failed"&&onRetry&&<button type="button" onClick={onRetry}><RefreshCw/> Retry Upload</button>}</div>}

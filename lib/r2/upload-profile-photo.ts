@@ -19,5 +19,6 @@ export async function uploadProfilePhoto(file:File,onProgress:(value:number)=>vo
   }
   const complete=await fetch("/api/uploads/profile-photo/complete",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({objectKey:signed.objectKey})});
   const saved=await complete.json() as {id?:string;objectKey?:string};if(!complete.ok||!saved.id)throw new PhotoUploadError("Photo record save failed",saved.objectKey||signed.objectKey,"database");
+  if(process.env.NODE_ENV==="development")console.info("[profile] avatar upload completed",{objectKeyPrefix:signed.objectKey.split("/").slice(0,2).join("/")});
   return{id:saved.id,name:file.name,size:file.size,preview:signed.publicUrl,objectKey:signed.objectKey};
 }

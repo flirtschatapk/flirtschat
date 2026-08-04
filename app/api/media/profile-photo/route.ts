@@ -1,7 +1,5 @@
-import {GetObjectCommand} from "@aws-sdk/client-s3";
-import {getSignedUrl} from "@aws-sdk/s3-request-presigner";
 import {NextResponse} from "next/server";
-import {getPrivateBucket,getR2Client} from "@/lib/r2/server";
+import {getPublicR2Url} from "@/lib/r2/server";
 import {createClient as createSupabaseClient} from "@/lib/supabase/server";
 
 export async function GET(request:Request){
@@ -14,6 +12,5 @@ export async function GET(request:Request){
   if(!photo)return NextResponse.json({error:"Not found"},{status:404});
   if(photo.user_id!==user.id&&photo.moderation_status!=="approved")return NextResponse.json({error:"Photo unavailable"},{status:403});
   if(photo.user_id!==user.id){const{data:blocked}=await supabase.rpc("fc_users_blocked",{a:user.id,b:photo.user_id});if(blocked)return NextResponse.json({error:"Photo unavailable"},{status:403})}
-  const url=await getSignedUrl(getR2Client(),new GetObjectCommand({Bucket:getPrivateBucket(),Key:key}),{expiresIn:300});
-  return NextResponse.redirect(url,307);
+  return NextResponse.redirect(getPublicR2Url(key),307);
 }

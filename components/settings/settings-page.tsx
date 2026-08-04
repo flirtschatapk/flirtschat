@@ -36,6 +36,8 @@ import {ProfileImage} from "@/components/profile-image";
 import {isPremiumUser} from "@/lib/discover-entitlements";
 import {EMAIL_UPDATES_EVENT,EMAIL_UPDATES_KEY,loadEmailUpdatePreferences,saveEmailUpdatePreferences,setEmailUpdatesEnabled,type EmailUpdateCategory,type EmailUpdatePreferences} from "@/lib/email-update-service";
 import {disablePushNotifications,enablePushNotifications,getPushPermission,loadPushEnabled,PUSH_CHANGE_EVENT,showTestPush,type PushPermission} from "@/lib/push-notification-service";
+import {getCurrentProfile} from "@/lib/profile-service";
+import type {CurrentProfile} from "@/lib/profile-types";
 
 type Accent="pink"|"violet"|"blue"|"cyan"|"green"|"gold"|"red";
 
@@ -52,13 +54,15 @@ export function SettingsPage(){
   const [online,setOnline]=useState(true);
   const [incognito,setIncognito]=useState(false);
   const [premium,setPremium]=useState(false);
+  const [profile,setProfile]=useState<CurrentProfile|null>(null);
 
   useEffect(()=>{
+    getCurrentProfile().then(value=>{setProfile(value);setPremium(value.premium)}).catch(()=>setFeatureNotice("We couldn't load your profile."));
     try{
       const saved=localStorage.getItem("flirtschat-settings");
       if(saved){const value=JSON.parse(saved) as {push?:boolean;email?:boolean;online?:boolean;incognito?:boolean};setPush(value.push??true);setEmail(value.email??true);setOnline(value.online??true);setIncognito(value.incognito??false)}
     }catch{}
-    const syncPremium=()=>{const active=isPremiumUser();setPremium(active);if(!active){setOnline(true);try{const saved=JSON.parse(localStorage.getItem("flirtschat-settings")??"{}") as Record<string,unknown>;localStorage.setItem("flirtschat-settings",JSON.stringify({...saved,online:true}))}catch{}}};
+    const syncPremium=()=>{const active=isPremiumUser();if(!active){setOnline(true);try{const saved=JSON.parse(localStorage.getItem("flirtschat-settings")??"{}") as Record<string,unknown>;localStorage.setItem("flirtschat-settings",JSON.stringify({...saved,online:true}))}catch{}}};
     const syncPush=()=>{setPushPermission(getPushPermission());setPush(loadPushEnabled())};
     const syncEmail=()=>{const preferences=loadEmailUpdatePreferences();setEmailPreferences(preferences);setEmail(preferences.enabled)};
     syncPremium();
@@ -92,8 +96,8 @@ export function SettingsPage(){
 
     <div className="settings-content">
       <section className="settings-profile-card">
-        <span className="settings-profile-photo"><ProfileImage position="0% 0%"/><i/></span>
-        <span className="settings-profile-copy"><strong>Alexandra <ShieldCheck/></strong><small>@alexandra_98</small><em><Sparkles/> Premium</em><time>Active since August 20, 2026</time></span>
+        <span className="settings-profile-photo"><ProfileImage src={profile?.primaryPhotoUrl||null} alt={profile?.displayName||"Your profile"}/><i/></span>
+        <span className="settings-profile-copy"><strong>{profile?.displayName||"Your profile"} {profile?.verified&&<ShieldCheck/>}</strong><small>@{profile?.username||"member"}</small>{profile?.premium&&<em><Sparkles/> Premium</em>}<time>{profile?.createdAt?`Active since ${new Date(profile.createdAt).toLocaleDateString()}`:"Loading profile…"}</time></span>
         <Link href="/profile" className="settings-profile-button"><i className="settings-profile-button-icon"><UserRound/></i><span>View Profile</span><ChevronRight className="settings-profile-button-arrow"/></Link>
       </section>
 

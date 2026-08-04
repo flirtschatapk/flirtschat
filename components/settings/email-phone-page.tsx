@@ -4,7 +4,7 @@ import {ArrowLeft,Check,ChevronRight,Clock3,LoaderCircle,LockKeyhole,Mail,MailCh
 import Link from "next/link";
 import {useEffect,useMemo,useRef,useState} from "react";
 import {AppBottomNav} from "@/components/app-bottom-nav";
-import {loadAccountProfile,saveAccountProfile} from "@/lib/account-profile-storage";
+import {createClient} from "@/lib/supabase/client";
 import {confirmEmailVerification,confirmPhoneVerification,MOCK_PHONE_CODE,sendEmailVerification,sendPhoneVerification} from "@/lib/contact-verification-service";
 
 type Stage="idle"|"sending"|"pending"|"verifying";
@@ -17,19 +17,18 @@ export function EmailPhonePage(){
   const originalEmail=useRef(""),originalPhone=useRef("");
   const emailValid=emailPattern.test(email),phoneValid=!phone||phonePattern.test(phone);
 
-  useEffect(()=>{const account=loadAccountProfile();setEmail(account.email);setPhone(account.phone);originalEmail.current=account.email;originalPhone.current=account.phone;try{const status=JSON.parse(localStorage.getItem("flirtschat:contact-verification")??"{}") as {email?:string;phone?:string};setEmailVerified(status.email===account.email||!status.email);setPhoneVerified(Boolean(account.phone&&status.phone===account.phone))}catch{}setReady(true)},[]);
+  useEffect(()=>{createClient().auth.getUser().then(({data})=>{const currentEmail=data.user?.email??"",currentPhone=data.user?.phone??"";setEmail(currentEmail);setPhone(currentPhone);originalEmail.current=currentEmail;originalPhone.current=currentPhone;setEmailVerified(Boolean(data.user?.email_confirmed_at));setPhoneVerified(Boolean(data.user?.phone_confirmed_at));setReady(true)})},[]);
   useEffect(()=>{if(countdown<=0)return;const timer=setInterval(()=>setCountdown(value=>Math.max(0,value-1)),1000);return()=>clearInterval(timer)},[countdown]);
   useEffect(()=>{if(!ready)return;if(email!==originalEmail.current){setEmailVerified(false);setEmailStage("idle")}if(phone!==originalPhone.current){setPhoneVerified(false);setPhoneStage("idle");setCode("")}},[email,phone,ready]);
 
-  const persist=(nextEmail=email,nextPhone=phone)=>{const account=loadAccountProfile();saveAccountProfile({...account,email:nextEmail,phone:nextPhone})};
-  const saveStatus=(next:{email?:string;phone?:string})=>{let current:Record<string,string>={};try{current=JSON.parse(localStorage.getItem("flirtschat:contact-verification")??"{}") as Record<string,string>}catch{}localStorage.setItem("flirtschat:contact-verification",JSON.stringify({...current,...next}))};
+  const persist=async(nextEmail=email,nextPhone=phone)=>{const{error}=await createClient().auth.updateUser({email:nextEmail,phone:nextPhone||undefined});if(error)throw error};
   const showNotice=(message:string)=>{setError("");setNotice(message);setTimeout(()=>setNotice(""),3000)};
 
   const sendEmail=async()=>{if(!emailValid||emailStage==="sending")return;setError("");setEmailStage("sending");try{await sendEmailVerification(email);setEmailStage("pending");setCountdown(30);showNotice(`Verification email sent to ${email}`)}catch(reason){setError(reason instanceof Error?reason.message:"Could not send verification");setEmailStage("idle")}};
-  const verifyEmail=async()=>{if(emailStage==="verifying")return;setEmailStage("verifying");try{await confirmEmailVerification(email);persist(email,phone);saveStatus({email});originalEmail.current=email;setEmailVerified(true);setEmailStage("idle");showNotice("Email address verified and saved") }catch{setError("Email verification failed");setEmailStage("pending")}};
+  const verifyEmail=async()=>{if(emailStage==="verifying")return;setEmailStage("verifying");try{await confirmEmailVerification(email);await persist(email,phone);originalEmail.current=email;setEmailVerified(true);setEmailStage("idle");showNotice("Email address verified and saved") }catch{setError("Email verification failed");setEmailStage("pending")}};
   const sendPhone=async()=>{if(!phoneValid||!phone||phoneStage==="sending")return;setError("");setPhoneStage("sending");try{await sendPhoneVerification(phone);setPhoneStage("pending");setCountdown(30);showNotice("Verification code sent") }catch(reason){setError(reason instanceof Error?reason.message:"Could not send code");setPhoneStage("idle")}};
-  const verifyPhone=async()=>{if(phoneStage==="verifying"||code.length!==6)return;setPhoneStage("verifying");try{await confirmPhoneVerification(phone,code);persist(email,phone);saveStatus({phone});originalPhone.current=phone;setPhoneVerified(true);setPhoneStage("idle");showNotice("Phone number verified and saved") }catch(reason){setError(reason instanceof Error?reason.message:"Verification failed");setPhoneStage("pending")}};
-  const removePhone=()=>{setPhone("");setCode("");setPhoneVerified(false);setPhoneStage("idle");originalPhone.current="";persist(email,"");saveStatus({phone:""});showNotice("Phone number removed")};
+  const verifyPhone=async()=>{if(phoneStage==="verifying"||code.length!==6)return;setPhoneStage("verifying");try{await confirmPhoneVerification(phone,code);await persist(email,phone);originalPhone.current=phone;setPhoneVerified(true);setPhoneStage("idle");showNotice("Phone number verified and saved") }catch(reason){setError(reason instanceof Error?reason.message:"Verification failed");setPhoneStage("pending")}};
+  const removePhone=()=>{setPhone("");setCode("");setPhoneVerified(false);setPhoneStage("idle");originalPhone.current="";void persist(email,"");showNotice("Phone number removed")};
   const maskedPhone=useMemo(()=>phone?`${phone.slice(0,Math.max(0,phone.length-4)).replace(/\d/g,"•")}${phone.slice(-4)}`:"No phone added",[phone]);
 
   if(!ready)return <main className="contact-loading"><LoaderCircle className="spin"/>Loading contact settings…</main>;

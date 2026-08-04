@@ -1,6 +1,6 @@
 import {PutObjectCommand} from "@aws-sdk/client-s3";
 import {NextResponse} from "next/server";
-import {getPrivateBucket,getR2Client} from "@/lib/r2/server";
+import {getPrivateBucket,getPublicBucket,getR2Client} from "@/lib/r2/server";
 import {createClient} from "@/lib/supabase/server";
 
 const allowed=new Set(["image/jpeg","image/png","image/webp"]),keyPattern=/^(profiles|report-evidence)\/([0-9a-f-]{36})\/[0-9a-f-]{36}\.(jpg|png|webp)$/;
@@ -12,7 +12,7 @@ export async function PUT(request:Request){
   const declared=Number(request.headers.get("content-length")||0);if(declared>5*1024*1024)return NextResponse.json({error:{code:"FILE_TOO_LARGE",message:"Invalid upload"}},{status:413});
   try{
     const body=new Uint8Array(await request.arrayBuffer());if(!body.length||body.length>5*1024*1024)return NextResponse.json({error:{code:"INVALID_SIZE",message:"Invalid upload"}},{status:400});
-    await getR2Client().send(new PutObjectCommand({Bucket:getPrivateBucket(),Key:key,ContentType:contentType,ContentLength:body.length,Body:body}));
+    await getR2Client().send(new PutObjectCommand({Bucket:match[1]==="profiles"?getPublicBucket():getPrivateBucket(),Key:key,ContentType:contentType,ContentLength:body.length,Body:body}));
     return NextResponse.json({ok:true});
   }catch(error){console.error("R2 proxy upload failed",{name:error instanceof Error?error.name:"UnknownError"});return NextResponse.json({error:{code:"MEDIA_UPLOAD_FAILED",message:"Upload unavailable"}},{status:502})}
 }

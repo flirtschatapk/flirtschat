@@ -22,7 +22,7 @@ export function getR2Client(){
   return client;
 }
 
-export function getPublicBucket(){return required("CLOUDFLARE_R2_PUBLIC_BUCKET")}
+export function getPublicBucket(){return "flirtschat-storage"}
 export function getPrivateBucket(){return required("CLOUDFLARE_R2_PRIVATE_BUCKET")}
 export function getPublicR2Url(objectKey:string){
   return `${required("CLOUDFLARE_R2_PUBLIC_URL").replace(/\/$/,"")}/${objectKey}`;

@@ -8,24 +8,22 @@ import {useForm} from "react-hook-form";
 import {AppBottomNav} from "@/components/app-bottom-nav";
 import {ProfileImage} from "@/components/profile-image";
 import {accountProfileDefaults,accountProfileSchema,type AccountProfileValues} from "@/lib/account-profile-schema";
-import {loadAccountProfile,saveAccountProfile} from "@/lib/account-profile-storage";
 import {globalCountries} from "@/lib/global-countries";
-import {loadOnboarding,saveOnboarding} from "@/lib/onboarding-storage";
+import {getCurrentProfile,updateCurrentProfile} from "@/lib/profile-service";
+import type {CurrentProfile} from "@/lib/profile-types";
 import {checkUsernameAvailability} from "@/lib/signup-validation-service";
 
 type UsernameState="idle"|"checking"|"available"|"taken"|"current";
 
 export function AccountInformationForm(){
   const [ready,setReady]=useState(false),[saved,setSaved]=useState(false),[usernameState,setUsernameState]=useState<UsernameState>("current");
+  const [profile,setProfile]=useState<CurrentProfile|null>(null),[loadError,setLoadError]=useState("");
   const originalUsername=useRef(accountProfileDefaults.username);
   const {register,handleSubmit,watch,reset,formState:{errors,isSubmitting,isDirty}}=useForm<AccountProfileValues>({resolver:zodResolver(accountProfileSchema),mode:"onChange",defaultValues:accountProfileDefaults});
   const username=watch("username")??"",bio=watch("bio")??"";
 
   useEffect(()=>{
-    const account=loadAccountProfile(),onboarding=loadOnboarding();
-    const merged={...account,fullName:account.fullName||onboarding.data.displayName,bio:account.bio||onboarding.data.bio,gender:(account.gender||onboarding.data.gender||"Female") as "Male"|"Female",dateOfBirth:account.dateOfBirth||onboarding.data.dateOfBirth,country:account.country||onboarding.data.country,city:account.city||onboarding.data.city,languages:account.languages||onboarding.data.languages};
-    originalUsername.current=merged.username;
-    reset(merged);setReady(true);
+    getCurrentProfile().then(value=>{setProfile(value);const merged={...accountProfileDefaults,fullName:value.displayName,username:value.username,bio:value.bio,gender:value.gender as AccountProfileValues["gender"],dateOfBirth:value.dateOfBirth,country:value.country,city:value.city,languages:value.languages.join(", "),occupation:value.occupation,education:value.education};originalUsername.current=value.username;reset(merged);setReady(true)}).catch(()=>{setLoadError("We're having trouble loading your account.");setReady(true)});
   },[reset]);
 
   useEffect(()=>{
@@ -34,17 +32,13 @@ export function AccountInformationForm(){
     if(clean===originalUsername.current){setUsernameState("current");return}
     if(clean.length<3||!/^[a-zA-Z0-9_]+$/.test(clean)){setUsernameState("idle");return}
     let active=true;setUsernameState("checking");
-    const timer=setTimeout(()=>void checkUsernameAvailability(clean).then(result=>{if(active)setUsernameState(result.available?"available":"taken")}),280);
+    const timer=setTimeout(()=>void checkUsernameAvailability(clean,profile?.id).then(result=>{if(active)setUsernameState(result.available?"available":"taken")}),500);
     return()=>{active=false;clearTimeout(timer)};
-  },[ready,username]);
+  },[profile?.id,ready,username]);
 
   const submit=handleSubmit(async values=>{
     if(usernameState==="taken"||usernameState==="checking")return;
-    await new Promise(resolve=>setTimeout(resolve,550));
-    saveAccountProfile(values);
-    const onboarding=loadOnboarding();
-    saveOnboarding({...onboarding,data:{...onboarding.data,displayName:values.fullName,bio:values.bio,gender:values.gender,dateOfBirth:values.dateOfBirth,country:values.country,city:values.city,languages:values.languages}});
-    originalUsername.current=values.username;setUsernameState("current");reset(values);setSaved(true);setTimeout(()=>setSaved(false),3000);
+    try{const updated=await updateCurrentProfile({displayName:values.fullName,username:values.username,bio:values.bio,gender:values.gender,dateOfBirth:values.dateOfBirth,country:values.country,city:values.city,languages:values.languages.split(",").map(x=>x.trim()).filter(Boolean),occupation:values.occupation,education:values.education});setProfile(updated);originalUsername.current=updated.username;setUsernameState("current");reset(values);setSaved(true);setTimeout(()=>setSaved(false),3000)}catch{setLoadError("We couldn't save your profile. Please try again.")}
   });
 
   if(!ready)return <main className="account-info-loading"><LoaderCircle className="spin"/><span>Loading account information…</span></main>;
@@ -52,11 +46,11 @@ export function AccountInformationForm(){
   return <main className="account-info-page">
     <header className="account-info-header"><Link href="/settings" aria-label="Back to settings"><ArrowLeft/></Link><div><h1>Account Information</h1><p>Keep your identity and profile details up to date.</p></div><span className="account-security"><ShieldCheck/></span></header>
     <form className="account-info-shell" onSubmit={submit} noValidate>
-      <section className="account-photo-card"><span><ProfileImage position="0% 0%"/><i/></span><div><strong>Profile photo</strong><small>Your current Flirtschat profile image</small></div><Link href="/onboarding">Manage photos</Link></section>
+      {loadError&&<p className="field-error" role="alert">{loadError}</p>}<section className="account-photo-card"><span><ProfileImage src={profile?.primaryPhotoUrl||null} alt={profile?.displayName||"Your profile"}/><i/></span><div><strong>Profile photo</strong><small>Your current Flirtschat profile image</small></div><Link href="/onboarding">Manage photos</Link></section>
       <section className="account-form-card"><header><UserRound/><div><h2>Basic information</h2><p>Details created during signup</p></div></header><div className="account-fields">
         <Field label="Full name" icon={<UserRound/>} error={errors.fullName?.message}><input autoComplete="name" {...register("fullName")}/></Field>
         <Field label="Username" icon={<AtSign/>} error={errors.username?.message||(usernameState==="taken"?"This username is already taken":undefined)} status={usernameState==="checking"?"Checking…":usernameState==="available"?"Username is available":usernameState==="current"?"Current username":undefined}><input autoComplete="username" {...register("username")}/></Field>
-        <Field label="Email address" icon={<Mail/>} error={errors.email?.message}><input type="email" autoComplete="email" {...register("email")}/></Field>
+        <Field label="Email address" icon={<Mail/>} error={errors.email?.message}><input type="email" autoComplete="email" disabled placeholder="Managed through Email & Phone" {...register("email")}/></Field>
         <Field label="Phone number" icon={<Phone/>} error={errors.phone?.message}><input type="tel" autoComplete="tel" placeholder="+1 555 000 0000" {...register("phone")}/></Field>
       </div></section>
       <section className="account-form-card"><header><BadgeCheck/><div><h2>Profile details</h2><p>Help people get to know you</p></div></header><div className="account-fields">

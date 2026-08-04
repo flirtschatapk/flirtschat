@@ -7,7 +7,7 @@ export async function POST(request:Request){
   const{data:existing,error:listError}=await supabase.from("fc_profile_photos").select("id,position").eq("user_id",user.id).order("position");
   if(listError){console.error("Profile photo position lookup failed",{code:listError.code});return NextResponse.json({error:{code:"PHOTO_RECORD_FAILED",message:"Photo could not be saved"},objectKey:body.objectKey},{status:500})}
   const used=new Set((existing??[]).map(x=>x.position)),position=[0,1,2,3,4,5].find(x=>!used.has(x));if(position===undefined)return NextResponse.json({error:{code:"PHOTO_LIMIT",message:"Maximum six photos"},objectKey:body.objectKey},{status:409});
-  const{data,error}=await supabase.from("fc_profile_photos").insert({user_id:user.id,object_key:body.objectKey,position,moderation_status:"pending"}).select("id").single();
+  const{data,error}=await supabase.from("fc_profile_photos").upsert({user_id:user.id,object_key:body.objectKey,position,moderation_status:"pending"},{onConflict:"object_key"}).select("id").single();
   if(error){console.error("Profile photo record insert failed",{code:error.code});return NextResponse.json({error:{code:"PHOTO_RECORD_FAILED",message:"Photo could not be saved"},objectKey:body.objectKey},{status:500})}
   return NextResponse.json({id:data.id,status:"pending",objectKey:body.objectKey});
 }

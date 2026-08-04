@@ -1,1 +1,2 @@
-import type {Metadata} from "next";import {ChatExperience} from "@/components/chat/chat-experience";export const metadata:Metadata={title:"Chat",description:"Continue your Flirtschat conversation."};export default async function ChatPage({params}:{params:Promise<{profileId:string}>}){const {profileId}=await params;return <ChatExperience profileId={profileId}/>}
+import {redirect} from "next/navigation";
+export default function LegacyChatProfilePage(){redirect("/chats")}
