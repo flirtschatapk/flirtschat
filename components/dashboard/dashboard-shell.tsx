@@ -8,7 +8,7 @@ import {DashboardCard,TabButton} from "@/components/ui/dashboard-primitives";
 import {ProfileImage} from "@/components/profile-image";
 import {HorizontalTabList} from "@/components/ui/horizontal-tab-list";
 import {isPremiumUser} from "@/lib/discover-entitlements";
-import {getCurrentProfile} from "@/lib/profile-service";
+import {getCurrentProfile,ProfileRequestError} from "@/lib/profile-service";
 import type {CurrentProfile} from "@/lib/profile-types";
 import {DesktopSidebar} from "./desktop-sidebar";
 import {GlobalProfileGrid} from "./global-profile-grid";
@@ -19,7 +19,7 @@ const tabs=["For you","Nearby","New","Popular"] as const;
 export function DashboardShell() {
   const router=useRouter();
   const [ready,setReady]=useState(false),[loadError,setLoadError]=useState(false),[profile,setProfile]=useState<CurrentProfile|null>(null),[filter,setFilter]=useState("For you"),[query,setQuery]=useState(""),[filtersOpen,setFiltersOpen]=useState(false),[verifiedOnly,setVerifiedOnly]=useState(false),[minLikes,setMinLikes]=useState(0),[welcomeVisible,setWelcomeVisible]=useState(true);
-  useEffect(()=>{let active=true;const timeout=window.setTimeout(()=>{if(active)setLoadError(true)},8000);getCurrentProfile().then(value=>{if(!active)return;if(!value.onboardingCompleted){router.replace("/onboarding");return}setProfile(value);setReady(true);window.clearTimeout(timeout)}).catch(()=>{if(active)setLoadError(true)});return()=>{active=false;window.clearTimeout(timeout)}},[router]);
+  useEffect(()=>{let active=true;const timeout=window.setTimeout(()=>{if(active)setLoadError(true)},8000);getCurrentProfile().then(value=>{if(!active)return;if(!value.onboardingCompleted){router.replace("/onboarding");return}setProfile(value);setReady(true);window.clearTimeout(timeout)}).catch(error=>{if(!active)return;if(error instanceof ProfileRequestError&&error.status===401){router.replace("/login");return}setLoadError(true)});return()=>{active=false;window.clearTimeout(timeout)}},[router]);
   useEffect(()=>{try{setWelcomeVisible(localStorage.getItem("flirtschat:hide-global-welcome")!=="1")}catch{}},[]);
   const openFilters=()=>{if(!isPremiumUser()){router.push("/premium");return}setFiltersOpen(value=>!value)};
   if(!ready)return <main className="route-loading">{loadError?<><span>We&apos;re having trouble loading your account.</span><button type="button" onClick={()=>window.location.reload()}>Retry</button></>:<><LoaderCircle className="spin"/><span>Opening your profile…</span></>}</main>;

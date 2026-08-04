@@ -1,5 +1,6 @@
 import type {CurrentProfile,CurrentProfileUpdate} from "@/lib/profile-types";
-async function request(method:"GET"|"PATCH",payload?:CurrentProfileUpdate){const response=await fetch("/api/profile/me",{method,headers:payload?{"content-type":"application/json"}:undefined,body:payload?JSON.stringify(payload):undefined,cache:"no-store"});const result=await response.json() as {ok?:boolean;profile?:CurrentProfile;error?:{message:string}};if(!response.ok||!result.profile)throw new Error(result.error?.message??"We couldn't load your profile.");return result.profile}
+export class ProfileRequestError extends Error{constructor(message:string,public readonly status:number){super(message);this.name="ProfileRequestError"}}
+async function request(method:"GET"|"PATCH",payload?:CurrentProfileUpdate){const response=await fetch("/api/profile/me",{method,headers:payload?{"content-type":"application/json"}:undefined,body:payload?JSON.stringify(payload):undefined,cache:"no-store",credentials:"same-origin"});const result=await response.json().catch(()=>null) as {ok?:boolean;profile?:CurrentProfile;error?:string|{message:string}}|null;if(!response.ok||!result?.profile){const message=typeof result?.error==="string"?result.error:result?.error?.message;throw new ProfileRequestError(message??"We couldn't load your profile.",response.status)}return result.profile}
 export const getCurrentProfile=()=>request("GET");
 export const refreshCurrentProfile=()=>request("GET");
 export const updateCurrentProfile=(payload:CurrentProfileUpdate)=>request("PATCH",payload);
