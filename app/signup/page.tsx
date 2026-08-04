@@ -1,3 +1,3 @@
-import type { Metadata } from "next";import { AuthLayout } from "@/components/auth/auth-layout";import { SignupFlow } from "@/components/auth/signup-flow";
+import type { Metadata } from "next";import {redirect} from "next/navigation";import { AuthLayout } from "@/components/auth/auth-layout";import { SignupFlow } from "@/components/auth/signup-flow";import {createClient} from "@/lib/supabase/server";import {isSupabaseConfigured} from "@/lib/supabase/config";import {getPostAuthDestination} from "@/lib/auth/post-auth-destination";
 export const metadata:Metadata={title:"Create your account",description:"Create a Flirtschat profile in three easy steps."};
-export default function SignupPage(){return <AuthLayout mode="signup"><SignupFlow/></AuthLayout>}
+export default async function SignupPage(){if(isSupabaseConfigured()){const supabase=await createClient(),{data:{user}}=await supabase.auth.getUser();if(user)redirect(await getPostAuthDestination(user.id))}return <AuthLayout mode="signup"><SignupFlow/></AuthLayout>}

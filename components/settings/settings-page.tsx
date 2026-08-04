@@ -128,7 +128,7 @@ export function SettingsPage(){
         <SettingLink icon={<Globe2/>} accent="violet" label="About Flirtschat" text="FLIRTSCHAT · Gen Z Dating App" href="/about"/>
       </SettingsGroup>
 
-      <Link className="settings-logout" href="/login"><i className="settings-logout-metal"><LogOut/></i><span>Log Out</span></Link>
+      <Link className="settings-logout" href="/auth/logout"><i className="settings-logout-metal"><LogOut/></i><span>Log Out</span></Link>
       <p className="settings-version">Flirtschat 1.0.0 · Made with ♥</p>
     </div>
     <AppBottomNav active="settings"/>

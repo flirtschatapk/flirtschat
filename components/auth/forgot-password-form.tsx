@@ -50,13 +50,10 @@ export function ForgotPasswordForm() {
 
       {sentTo ? (
         <div className="forgot-success-actions">
-          <a className="auth-submit btn-gradient" href="/reset-password?token=mock-reset-token">
-            Open mock reset link <ArrowRight />
-          </a>
           <button type="button" className="auth-text-link" onClick={() => setSentTo(null)}>
             Use a different email
           </button>
-          <small>Mock link is shown only while email delivery is not connected.</small>
+          <small>If this address can receive a reset link, the next steps are in its inbox.</small>
         </div>
       ) : (
         <form onSubmit={handleSubmit(submit)} noValidate>

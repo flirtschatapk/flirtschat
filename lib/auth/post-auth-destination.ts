@@ -1,0 +1,25 @@
+import type {User} from "@supabase/supabase-js";
+import {createClient} from "@/lib/supabase/server";
+
+export type PostAuthDestination = "/onboarding" | "/dashboard";
+
+export async function getPostAuthDestination(userId:string):Promise<PostAuthDestination>{
+  const supabase=await createClient();
+  const{data,error}=await supabase.from("fc_profiles").select("onboarding_completed").eq("id",userId).maybeSingle();
+  if(error)throw new Error(`Profile lookup failed: ${error.code}`);
+  return data?.onboarding_completed?"/dashboard":"/onboarding";
+}
+
+export async function ensureInitialProfile(user:User){
+  const supabase=await createClient();
+  const{data,error}=await supabase.from("fc_profiles").select("id").eq("id",user.id).maybeSingle();
+  if(error)throw new Error(`Profile lookup failed: ${error.code}`);
+  if(data)return;
+  const metadata=user.user_metadata??{};
+  const candidate=[metadata.full_name,metadata.name].find(value=>typeof value==="string"&&value.trim()) as string|undefined;
+  const displayName=candidate?.trim().slice(0,100)??"";
+  const metadataUsername=typeof metadata.username==="string"?metadata.username.trim().toLowerCase():"";
+  const username=/^[a-z0-9_]{3,24}$/.test(metadataUsername)?metadataUsername:`user_${user.id.replaceAll("-","").slice(0,12)}`;
+  const{error:insertError}=await supabase.from("fc_profiles").insert({id:user.id,username,display_name:displayName,onboarding_completed:false});
+  if(insertError&&insertError.code!=="23505")throw new Error(`Profile creation failed: ${insertError.code}`);
+}

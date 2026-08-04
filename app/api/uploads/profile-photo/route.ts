@@ -14,11 +14,14 @@ export async function POST(request:Request){
 
   const body=await request.json().catch(()=>null) as {contentType?:string;size?:number}|null;
   if(!body?.contentType||!allowed.has(body.contentType))return NextResponse.json({error:"JPG, PNG or WEBP required"},{status:400});
-  if(!body.size||body.size>8*1024*1024)return NextResponse.json({error:"Maximum file size is 8 MB"},{status:400});
+  if(!body.size||body.size>5*1024*1024)return NextResponse.json({error:"Invalid upload size"},{status:400});
 
   const objectKey=`profiles/${user.id}/${crypto.randomUUID()}.${extensions[body.contentType]}`;
-  const command=new PutObjectCommand({Bucket:getPrivateBucket(),Key:objectKey,ContentType:body.contentType,ContentLength:body.size});
-  const uploadUrl=await getSignedUrl(getR2Client(),command,{expiresIn:300});
-  const mediaUrl=new URL(`/api/media/profile-photo?key=${encodeURIComponent(objectKey)}`,request.url).toString();
-  return NextResponse.json({uploadUrl,objectKey,publicUrl:mediaUrl});
+  try{
+    const command=new PutObjectCommand({Bucket:getPrivateBucket(),Key:objectKey,ContentType:body.contentType,ContentLength:body.size});
+    const uploadUrl=await getSignedUrl(getR2Client(),command,{expiresIn:300});
+    const mediaUrl=new URL(`/api/media/profile-photo?key=${encodeURIComponent(objectKey)}`,request.url).toString();
+    const fallbackUrl=new URL(`/api/uploads/r2-proxy?key=${encodeURIComponent(objectKey)}`,request.url).toString();
+    return NextResponse.json({uploadUrl,objectKey,publicUrl:mediaUrl,fallbackUrl,expiresIn:300});
+  }catch(error){console.error("Profile upload signing failed",{name:error instanceof Error?error.name:"UnknownError"});return NextResponse.json({error:{code:"UPLOAD_SIGNING_FAILED",message:"Upload unavailable"}},{status:503})}
 }

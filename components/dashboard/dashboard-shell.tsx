@@ -6,9 +6,7 @@ import {useEffect,useState} from "react";
 import {DashboardCard,TabButton} from "@/components/ui/dashboard-primitives";
 import {ProfileImage} from "@/components/profile-image";
 import {HorizontalTabList} from "@/components/ui/horizontal-tab-list";
-import {isMockAuthenticated} from "@/lib/mock-auth-guard";
 import {isPremiumUser} from "@/lib/discover-entitlements";
-import {loadOnboarding} from "@/lib/onboarding-storage";
 import {DesktopSidebar} from "./desktop-sidebar";
 import {GlobalProfileGrid} from "./global-profile-grid";
 import {MobileBottomNav} from "./mobile-bottom-nav";
@@ -18,7 +16,7 @@ const tabs=["For you","Nearby","New","Popular"] as const;
 export function DashboardShell() {
   const router=useRouter();
   const [ready,setReady]=useState(false),[filter,setFilter]=useState("For you"),[query,setQuery]=useState(""),[filtersOpen,setFiltersOpen]=useState(false),[verifiedOnly,setVerifiedOnly]=useState(false),[minLikes,setMinLikes]=useState(0),[welcomeVisible,setWelcomeVisible]=useState(true);
-  useEffect(()=>{if(!isMockAuthenticated()){router.replace("/login");return}const saved=loadOnboarding();if(!saved.completed){router.replace("/onboarding");return}setReady(true)},[router]);
+  useEffect(()=>{setReady(true)},[]);
   useEffect(()=>{try{setWelcomeVisible(localStorage.getItem("flirtschat:hide-global-welcome")!=="1")}catch{}},[]);
   const openFilters=()=>{if(!isPremiumUser()){router.push("/premium");return}setFiltersOpen(value=>!value)};
   if(!ready)return <main className="route-loading"><LoaderCircle className="spin"/><span>Opening the world…</span></main>;

@@ -1,0 +1,14 @@
+[
+  {
+    "AllowedOrigins": [
+      "https://flirtschat.com",
+      "https://www.flirtschat.com",
+      "https://YOUR_CURRENT_VERCEL_DOMAIN",
+      "http://localhost:3000"
+    ],
+    "AllowedMethods": ["GET", "HEAD", "PUT"],
+    "AllowedHeaders": ["Content-Type", "Content-Length"],
+    "ExposeHeaders": ["ETag"],
+    "MaxAgeSeconds": 3600
+  }
+]

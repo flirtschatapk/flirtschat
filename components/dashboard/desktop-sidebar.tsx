@@ -22,7 +22,7 @@ export function DesktopSidebar({mobileOpen=false,onClose,active="global"}:{mobil
         <a className={active==="settings"?"active":undefined} href="/settings"><Settings/><span>Settings</span></a>
       </nav>
       <div className="dating-sidebar-upgrade"><Crown/><strong>Be seen first</strong><small>Stand out with Premium.</small><a href="/premium">Explore Premium</a></div>
-      <a className="dating-sidebar-logout" href="/login"><LogOut/><span>Log out</span></a>
+      <a className="dating-sidebar-logout" href="/auth/logout"><LogOut/><span>Log out</span></a>
     </aside>
   </>;
 }

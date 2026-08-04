@@ -1,7 +1,6 @@
 "use client";
 
 import {LoaderCircle} from "lucide-react";
-import {useRouter} from "next/navigation";
 import {useCallback, useEffect, useRef, useState} from "react";
 import {ActionButtons, type DiscoverAction} from "./action-buttons";
 import {DiscoverEmptyState} from "./discover-empty-state";
@@ -16,13 +15,10 @@ import {ProfileDetailsSheet} from "./profile-details-sheet";
 import {boostProfile, dislikeProfile, getProfiles, likeProfile, rewindProfile, superLikeProfile} from "@/lib/discover-service";
 import {consumeDailyDiscoverAction, isPremiumUser, loadDailyDiscoverQuota, type DailyDiscoverQuota} from "@/lib/discover-entitlements";
 import {defaultDiscoverFilters, type DiscoverFilters, type DiscoverProfile, type DiscoverTab} from "@/lib/discover-types";
-import {isMockAuthenticated} from "@/lib/mock-auth-guard";
-import {loadOnboarding} from "@/lib/onboarding-storage";
 import {registerMatch} from "@/lib/match-storage";
 import {DISCOVER_PREFERENCES_EVENT,DISCOVER_PREFERENCES_KEY,loadDiscoverPreferences,saveDiscoverPreferences} from "@/lib/discover-preferences";
 
 export function DiscoverExperience() {
-  const router = useRouter();
   const lock = useRef(false);
   const [ready, setReady] = useState(false);
   const [profiles, setProfiles] = useState<DiscoverProfile[]>([]);
@@ -54,19 +50,11 @@ export function DiscoverExperience() {
   }, [tab, filters]);
 
   useEffect(() => {
-    if (!isMockAuthenticated()) {
-      router.replace("/login");
-      return;
-    }
-    if (!loadOnboarding().completed) {
-      router.replace("/onboarding");
-      return;
-    }
     setPremium(isPremiumUser());
     setFilters(loadDiscoverPreferences());
     setQuota(loadDailyDiscoverQuota());
     setReady(true);
-  }, [router]);
+  }, []);
 
   useEffect(() => {
     if (ready) void load();

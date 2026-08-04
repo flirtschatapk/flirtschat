@@ -1,10 +1,7 @@
-const wait = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+import {createClient} from "./supabase/client";
+import {getSiteUrl} from "./site-url";
 
-function validateToken(token: string | null) {
-  if (!token || token === "expired" || token === "invalid") throw new Error("This link is invalid or has expired. Request a new link to continue.");
-}
-
-export async function requestPasswordReset(email: string) { await wait(900); if (email.toLowerCase().includes("error")) throw new Error("We could not send the reset email. Please try again."); return { delivered: true }; }
-export async function updatePassword(password: string, token: string | null) { await wait(950); validateToken(token); return { updated: password.length >= 8 }; }
-export async function resendVerificationEmail(email: string) { await wait(800); if (!email) throw new Error("Add your email address before requesting another link."); if (email.toLowerCase().includes("error")) throw new Error("The verification email could not be sent."); return { delivered: true }; }
-export async function verifyEmail(token: string | null) { await wait(850); validateToken(token); return { verified: true }; }
+function logDevelopment(context:string,error:unknown){if(process.env.NODE_ENV==="development")console.error(context,error)}
+export async function requestPasswordReset(email:string){const{error}=await createClient().auth.resetPasswordForEmail(email.trim(),{redirectTo:`${getSiteUrl()}/auth/callback?next=/reset-password`});if(error)logDevelopment("Password reset request failed",{code:error.code,status:error.status});return{delivered:true}}
+export async function updatePassword(password:string){const{error}=await createClient().auth.updateUser({password});if(error){logDevelopment("Password update failed",{code:error.code,status:error.status});throw new Error("We couldn’t update your password. Request a new reset link and try again.")}return{updated:true}}
+export async function resendVerificationEmail(email:string){const{error}=await createClient().auth.resend({type:"signup",email:email.trim(),options:{emailRedirectTo:`${getSiteUrl()}/auth/callback`}});if(error){logDevelopment("Verification resend failed",{code:error.code,status:error.status});throw new Error("We couldn’t send another verification email right now. Please try again.")}return{delivered:true}}
