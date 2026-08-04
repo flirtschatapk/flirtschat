@@ -1,3 +1,15 @@
+"use client";
+
 import Image from "next/image";
 import {UserRound} from "lucide-react";
-export function ProfileImage({position="0% 0%",className="",alt="Flirtschat member",src="/images/profiles.png"}:{position?:string;className?:string;alt?:string;src?:string|null}){const positionIsUrl=position.startsWith("/")||position.startsWith("https://"),effectiveSrc=positionIsUrl?position:src,effectivePosition=positionIsUrl?"50% 50%":position;return <span className={`profile-image ${className}`}>{effectiveSrc?<Image src={effectiveSrc} alt={alt} fill sizes="(max-width: 768px) 80vw, 360px" style={{objectPosition:effectivePosition,objectFit:"cover"}} priority unoptimized={effectiveSrc.startsWith("/api/")}/>:<UserRound aria-label={alt}/>}</span>}
+import {useEffect,useState} from "react";
+
+type ProfileImageProps={position?:string;className?:string;alt?:string;src?:string|null};
+function safeSource(value:string|null|undefined){if(!value)return null;const source=value.trim();return source.startsWith("/")||source.startsWith("https://")?source:null}
+
+export function ProfileImage({position="0% 0%",className="",alt="Flirtschat member",src="/images/profiles.png"}:ProfileImageProps){
+  const positionUrl=safeSource(position),requested=positionUrl??safeSource(src),[failed,setFailed]=useState(false);
+  useEffect(()=>setFailed(false),[requested]);
+  const isSprite=requested==="/images/profiles.png",effectivePosition=positionUrl?"50% 50%":position;
+  return <span className={`profile-image ${isSprite?"profile-image--sprite":"profile-image--asset"} ${className}`.trim()}>{requested&&!failed?<Image src={requested} alt={alt} fill sizes="(max-width: 480px) 50vw, (max-width: 768px) 80vw, 360px" style={{objectPosition:effectivePosition,objectFit:"cover"}} unoptimized={requested.startsWith("/api/")} onError={()=>setFailed(true)}/>:<UserRound aria-label={alt}/>}</span>;
+}
