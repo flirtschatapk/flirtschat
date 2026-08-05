@@ -9,6 +9,7 @@ import {ProfileImage} from "@/components/profile-image";
 import {useCurrentProfile} from "@/components/profile/current-profile-provider";
 import {HorizontalTabList} from "@/components/ui/horizontal-tab-list";
 import {isPremiumUser} from "@/lib/discover-entitlements";
+import type {CurrentProfile} from "@/lib/profile-types";
 import {DesktopSidebar} from "./desktop-sidebar";
 import {GlobalProfileGrid} from "./global-profile-grid";
 import {MobileBottomNav} from "./mobile-bottom-nav";
@@ -32,7 +33,7 @@ export function DashboardShell() {
         <div className="dashboard-header-actions"><a className="dashboard-premium-action dashboard-metallic-action" href="/premium" aria-label="Upgrade to Premium"><Crown/></a><a className="dashboard-icon-button dashboard-metallic-action dashboard-notification-action" href="/notifications" aria-label="Notifications"><Bell/><i/></a><a className="dashboard-profile-avatar dashboard-profile-photo" href="/profile" aria-label="Open profile"><ProfileImage src={profile?.primaryPhotoUrl||null} alt={profile?.displayName||"Your profile"}/></a></div>
       </header>
 
-      {profile&&<DashboardCard className="dashboard-current-profile"><ProfileImage src={profile.primaryPhotoUrl||null} alt={profile.displayName||"Your profile"}/><div><small>@{profile.username}</small><h2>{profile.displayName||"Complete your profile"}</h2><p>{profile.bio||"Add a bio so people can get to know you."}</p><span>{[profile.city,profile.country].filter(Boolean).join(", ")||"Location not added"}</span></div><a href="/profile">Edit profile</a></DashboardCard>}
+      <ProfileCompletionBanner profile={profile}/>
 
       {welcomeVisible&&<DashboardCard className="global-welcome dashboard-hero"><button className="global-welcome-close" type="button" aria-label="Hide welcome card" onClick={()=>{setWelcomeVisible(false);try{localStorage.setItem("flirtschat:hide-global-welcome","1")}catch{}}}><X/></button><div className="dashboard-hero-copy"><span><Sparkles/> Gen Z world is open</span><h1>Meet people beyond<br/><em>the usual circle.</em></h1><p>Explore authentic profiles shaped around shared energy—not an endless list of metrics.</p></div><div className="global-location-orb dashboard-hero-visual"><Globe2/><span><MapPin/> Worldwide</span></div></DashboardCard>}
 
@@ -45,4 +46,17 @@ export function DashboardShell() {
     </div>
     <MobileBottomNav/>
   </main>;
+}
+
+const completionFields=(profile:CurrentProfile)=>[
+  profile.displayName,profile.username,profile.bio,profile.gender,profile.interestedIn,profile.dateOfBirth,
+  profile.country,profile.city,profile.languages.length,profile.interests.length,profile.relationshipGoal,profile.primaryPhotoUrl,
+];
+function getProfileCompletion(profile:CurrentProfile){const fields=completionFields(profile);return Math.round(fields.filter(Boolean).length/fields.length*100)}
+function ProfileCompletionBanner({profile}:{profile:CurrentProfile}){
+  const profileCompletion=getProfileCompletion(profile),[dismissed,setDismissed]=useState(false);
+  useEffect(()=>{if(profileCompletion>=100)setDismissed(false)},[profileCompletion]);
+  if(profileCompletion>=100)return null;
+  if(dismissed)return null;
+  return <DashboardCard className="dashboard-current-profile"><ProfileImage src={profile.primaryPhotoUrl||null} alt={profile.displayName||"Your profile"}/><div><small>{profile.username?`@${profile.username}`:`${profileCompletion}% complete`}</small><h2>{profile.displayName||"Complete your profile"}</h2><p>{profile.bio||"Add a bio so people can get to know you."}</p><span>{[profile.city,profile.country].filter(Boolean).join(", ")||"Location not added"}</span></div><a href="/profile">Edit profile</a><button className="dashboard-profile-later" type="button" onClick={()=>setDismissed(true)} aria-label="Dismiss profile completion"><X/><span>Later</span></button></DashboardCard>;
 }
