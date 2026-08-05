@@ -1,7 +1,7 @@
 "use client";
 
 import {zodResolver} from "@hookform/resolvers/zod";
-import {ArrowLeft,AtSign,BadgeCheck,BookOpen,Briefcase,CalendarDays,Check,Globe2,Languages,LoaderCircle,Mail,MapPin,Phone,Save,ShieldCheck,UserRound,X} from "lucide-react";
+import {ArrowLeft,AtSign,BadgeCheck,BookOpen,CalendarDays,Check,Globe2,Languages,LoaderCircle,Mail,MapPin,Phone,Save,ShieldCheck,UserRound,X} from "lucide-react";
 import Link from "next/link";
 import {useEffect,useRef,useState} from "react";
 import {useForm} from "react-hook-form";
@@ -29,7 +29,7 @@ export function AccountInformationForm(){
     if(shared.loading)return;
     const value=shared.profile;
     if(!value){setLoadError("We're having trouble loading your account.");setReady(true);return}
-    setProfile(value);const merged={...accountProfileDefaults,fullName:value.displayName,username:value.username,bio:value.bio,gender:value.gender as AccountProfileValues["gender"],dateOfBirth:value.dateOfBirth,country:value.country,city:value.city,languages:value.languages.join(", "),occupation:value.occupation,education:value.education};originalUsername.current=value.username;reset(merged);setReady(true);
+    setProfile(value);const merged={...accountProfileDefaults,fullName:value.displayName,username:value.username,bio:value.bio,gender:value.gender as AccountProfileValues["gender"],dateOfBirth:value.dateOfBirth,country:value.country,city:value.city,languages:value.languages.join(", ")};originalUsername.current=value.username;reset(merged);setReady(true);
   },[reset,shared.loading,shared.profile]);
 
   useEffect(()=>()=>{if(successTimer.current)clearTimeout(successTimer.current)},[]);
@@ -47,7 +47,7 @@ export function AccountInformationForm(){
   const submit=handleSubmit(async values=>{
     if(usernameState==="taken"||usernameState==="checking")return;
     setLoadError("");setSaved(false);
-    try{const updated=await updateCurrentProfile({displayName:values.fullName,username:values.username,bio:values.bio,gender:values.gender,dateOfBirth:values.dateOfBirth,country:values.country,city:values.city,languages:values.languages.split(",").map(x=>x.trim()).filter(Boolean),occupation:values.occupation,education:values.education});setProfile(updated);originalUsername.current=updated.username;setUsernameState("current");reset(values);await shared.refresh();setSaved(true);if(successTimer.current)clearTimeout(successTimer.current);successTimer.current=setTimeout(()=>setSaved(false),4500)}catch{setLoadError("We couldn't save your profile. Please try again.")}
+    try{const updated=await updateCurrentProfile({displayName:values.fullName,username:values.username,bio:values.bio,gender:values.gender,dateOfBirth:values.dateOfBirth,country:values.country,city:values.city,languages:values.languages.split(",").map(x=>x.trim()).filter(Boolean)});setProfile(updated);originalUsername.current=updated.username;setUsernameState("current");reset(values);await shared.refresh();setSaved(true);if(successTimer.current)clearTimeout(successTimer.current);successTimer.current=setTimeout(()=>setSaved(false),4500)}catch{setLoadError("We couldn't save your profile. Please try again.")}
   });
 
   if(!ready)return <main className="account-info-loading"><LoaderCircle className="spin"/><span>Loading account information…</span></main>;
@@ -69,8 +69,6 @@ export function AccountInformationForm(){
         <Field label="Country" icon={<Globe2/>} error={errors.country?.message}><select {...register("country")}><option value="">Choose country</option>{globalCountries.map(country=><option key={country}>{country}</option>)}</select></Field>
         <Field label="City" icon={<MapPin/>} error={errors.city?.message}><input autoComplete="address-level2" {...register("city")}/></Field>
         <Field label="Languages" icon={<Languages/>} error={errors.languages?.message}><input placeholder="English, Spanish" {...register("languages")}/></Field>
-        <Field label="Occupation" icon={<Briefcase/>} error={errors.occupation?.message}><input placeholder="Product designer" {...register("occupation")}/></Field>
-        <Field label="Education" icon={<BookOpen/>} error={errors.education?.message}><input placeholder="University or qualification" {...register("education")}/></Field>
       </div></section>
       <div className="account-form-actions"><Link href="/settings">Cancel</Link><button type="submit" disabled={isSubmitting||usernameState==="checking"||usernameState==="taken"||!isDirty}>{isSubmitting?<><LoaderCircle className="spin"/>Saving…</>:<><Save/>Save Changes</>}</button></div>
     </form>
