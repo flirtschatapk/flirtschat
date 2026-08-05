@@ -11,6 +11,7 @@ import{ProfileImage}from"@/components/profile-image";
 import{checkChatContent}from"@/lib/chat/content-filter";
 import{isPremiumUser}from"@/lib/discover-entitlements";
 import{getConversations,saveConversations,sendMessage}from"@/lib/chat/chat-service";
+import{createClient}from"@/lib/supabase/client";
 import{getIcebreakers,type IcebreakerCategory}from"@/lib/chat/icebreaker-service";
 import type{ChatMessage,Conversation,MessageStatus,MessageType}from"@/lib/chat/chat-types";
 
@@ -19,7 +20,8 @@ const conversationRecency=(value:string)=>{const clean=value.trim().toLowerCase(
 const attachmentOptions:[LucideIcon,string,string,MessageType][]=[[Camera,"Camera","Photo from camera","photo"],[ImageIcon,"Gallery","Gallery photo","photo"],[Gift,"Gift","Virtual rose gift","gift"],[MapPin,"Location","Shared approximate location","system"],[FileText,"Document","Shared document","system"]];
 export function ChatLayout({conversationId}:{conversationId?:string}){
  const reduce=useReducedMotion(),[items,setItems]=useState<Conversation[]>([]),[loading,setLoading]=useState(true),[query,setQuery]=useState(""),[tab,setTab]=useState<"All"|"Unread"|"Matches"|"Favorites">("All"),[online,setOnline]=useState(true),[notice,setNotice]=useState(""),toastStartX=useRef<number|null>(null);
- useEffect(()=>{getConversations().then(data=>{setItems(data);setLoading(false)});const connection=()=>setOnline(navigator.onLine);connection();window.addEventListener("online",connection);window.addEventListener("offline",connection);return()=>{window.removeEventListener("online",connection);window.removeEventListener("offline",connection)}},[]);
+ const load=useCallback(async()=>{try{setItems(await getConversations())}catch(error){console.error("[chats] query failed",{code:typeof error==="object"&&error&&"code"in error?String(error.code):"unknown"});setNotice("Messages couldn't load. Try again.")}finally{setLoading(false)}},[]);
+ useEffect(()=>{void load();const supabase=createClient(),channel=supabase.channel("current-user-chats").on("postgres_changes",{event:"*",schema:"public",table:"fc_messages"},()=>void load()).on("postgres_changes",{event:"*",schema:"public",table:"fc_conversations"},()=>void load()).subscribe();const connection=()=>setOnline(navigator.onLine);connection();window.addEventListener("online",connection);window.addEventListener("offline",connection);return()=>{void supabase.removeChannel(channel);window.removeEventListener("online",connection);window.removeEventListener("offline",connection)}},[load]);
  useEffect(()=>{if(!notice)return;const timer=window.setTimeout(()=>setNotice(""),3000);return()=>window.clearTimeout(timer)},[notice]);
  const update=(next:Conversation[])=>{setItems(next);saveConversations(next)};
  const active=conversationId?items.find(item=>item.id===conversationId):undefined;
@@ -88,7 +90,7 @@ function ChatInput({text,setText,send,reply,clearReply,attachments,setAttachment
  const closeCamera=()=>{streamRef.current?.getTracks().forEach(track=>track.stop());streamRef.current=null;setCameraOpen(false);setCapturedPhoto("");setCameraError("")};
  const openCamera=()=>{setAttachments(false);setCapturedPhoto("");setCameraOpen(true)};
  const capturePhoto=()=>{const video=videoRef.current;if(!video||!video.videoWidth)return;const canvas=document.createElement("canvas");canvas.width=video.videoWidth;canvas.height=video.videoHeight;canvas.getContext("2d")?.drawImage(video,0,0,canvas.width,canvas.height);setCapturedPhoto(canvas.toDataURL("image/jpeg",.88));streamRef.current?.getTracks().forEach(track=>track.stop())};
- const uploadImage=(name:string,dataUrl:string,kind:"Camera"|"Gallery")=>{setUploadName(name);setUploadProgress(4);let progress=4;const timer=window.setInterval(()=>{progress=Math.min(100,progress+Math.ceil(Math.random()*16));setUploadProgress(progress);if(progress>=100){window.clearInterval(timer);window.setTimeout(()=>{addSpecial("photo",`${kind}: ${name}`,dataUrl);setUploadProgress(null);setUploadName("")},280)}},140)};
+ const uploadImage=(name:string,dataUrl:string,kind:"Camera"|"Gallery")=>{void name;void dataUrl;void kind;setUploadName("Media uploads are not available yet.");setUploadProgress(null)};
  const chosenFile=(kind:"Gallery"|"Document",files:FileList|null)=>{const file=files?.[0];if(!file)return;setAttachments(false);if(kind==="Document"){addSpecial("system",`Document: ${file.name}`);return}const reader=new FileReader();reader.onload=()=>uploadImage(file.name,String(reader.result),"Gallery");reader.readAsDataURL(file)};
  const useCapturedPhoto=()=>{if(!capturedPhoto)return;const name=`camera-${Date.now()}.jpg`;const photo=capturedPhoto;closeCamera();uploadImage(name,photo,"Camera")};
  const reviewVoice=()=>{if(seconds>0){setVoiceDraft(seconds);setVoicePlaying(false)};stopRecord()}; const sendVoice=()=>{if(voiceDraft===null)return;addSpecial("voice",`Voice message · ${voiceDraft}s`);setVoiceDraft(null);setVoicePlaying(false)}; const removeVoice=()=>{setVoiceDraft(null);setVoicePlaying(false)}; const requirePremium=()=>{if(isPremiumUser())return true;setAttachments(false);setPremiumOpen(true);return false};
@@ -103,9 +105,6 @@ function EditMessageDialog({value,setValue,close,save}:{value:string;setValue:(v
 function IcebreakerSheet({category,setCategory,suggestions,refresh,send,close}:{category:IcebreakerCategory;setCategory:(c:IcebreakerCategory)=>void;suggestions:string[];refresh:()=>void;send:(s:string)=>void;close:()=>void}){return <motion.div className="fc-sheet-backdrop" onClick={close} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}><motion.section className="fc-ice-sheet" onClick={e=>e.stopPropagation()} initial={{y:"100%"}} animate={{y:0}}><header><span><Sparkles/>AI Icebreakers</span><button onClick={close}><X/></button></header><div className="fc-ice-tabs">{(["Flirty","Funny","Romantic","Casual"]as const).map(c=><button className={category===c?"active":""} onClick={()=>setCategory(c)} key={c}>{c}</button>)}</div>{suggestions.map(s=><div className="fc-suggestion" key={s}><button onClick={()=>send(s)}>{s}</button><button aria-label="Favorite suggestion"><Star/></button></div>)}<button className="fc-refresh-ice" onClick={refresh}><RefreshCw/>Refresh suggestions</button><small>Free plan: 5 generations daily · Premium: unlimited</small></motion.section></motion.div>}
 function TypingIndicator({position}:{position:string}){return <div className="fc-typing-indicator"><ProfileImage position={position}/><span><i/><i/><i/></span></div>}
 function DateSeparator(){return <div className="fc-date-separator">Today</div>}function UnreadDivider(){return <div className="fc-unread-divider"><i/>Unread Messages<i/></div>}function HeartIcon(){return <svg viewBox="0 0 48 52"><path d="M24 2c6 5 13 7 21 8v15c0 12-7 20-21 25C10 45 3 37 3 25V10c8-1 15-3 21-8Z" fill="white"/><path d="M24 36S14 31 14 23c0-4 5-7 8-3l2 2 2-2c3-4 8-1 8 3 0 8-10 13-10 13Z" fill="#d62eb4"/></svg>}
-
-
-
 
 
 

@@ -15,8 +15,8 @@ import {ProfileDetailsSheet} from "./profile-details-sheet";
 import {boostProfile, dislikeProfile, getProfiles, likeProfile, rewindProfile, superLikeProfile} from "@/lib/discover-service";
 import {consumeDailyDiscoverAction, isPremiumUser, loadDailyDiscoverQuota, type DailyDiscoverQuota} from "@/lib/discover-entitlements";
 import {defaultDiscoverFilters, type DiscoverFilters, type DiscoverProfile, type DiscoverTab} from "@/lib/discover-types";
-import {registerMatch} from "@/lib/match-storage";
 import {DISCOVER_PREFERENCES_EVENT,DISCOVER_PREFERENCES_KEY,loadDiscoverPreferences,saveDiscoverPreferences} from "@/lib/discover-preferences";
+import {createClient} from "@/lib/supabase/client";
 
 export function DiscoverExperience() {
   const lock = useRef(false);
@@ -59,6 +59,8 @@ export function DiscoverExperience() {
   useEffect(() => {
     if (ready) void load();
   }, [ready, load]);
+
+  useEffect(()=>{if(!ready)return;const supabase=createClient(),channel=supabase.channel("discovery-profiles").on("postgres_changes",{event:"*",schema:"public",table:"fc_profiles"},()=>void load()).on("postgres_changes",{event:"*",schema:"public",table:"fc_profile_photos"},()=>void load()).subscribe();return()=>{void supabase.removeChannel(channel)}},[load,ready]);
 
   useEffect(() => {
     const syncEntitlements = () => {
@@ -115,7 +117,6 @@ export function DiscoverExperience() {
         setDirection({x: 700, y: 0});
         const result = await likeProfile(target.id);
         if (result.matched) {
-          registerMatch(target.id, target.name);
           setMatch(target);
         }
       }

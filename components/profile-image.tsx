@@ -8,7 +8,7 @@ import {useEffect,useState} from "react";
 type ProfileImageProps={position?:string;className?:string;alt?:string;src?:string|null};
 function safeSource(value:string|null|undefined){if(!value)return null;const source=value.trim();return source.startsWith("/")||source.startsWith("https://")?source:null}
 
-export function ProfileImage({position="0% 0%",className="",alt="Flirtschat member",src="/images/profiles.png"}:ProfileImageProps){
+export function ProfileImage({position="0% 0%",className="",alt="Flirtschat member",src=null}:ProfileImageProps){
   const positionUrl=safeSource(position),requested=positionUrl??safeSource(src),[failed,setFailed]=useState(false);
   useEffect(()=>setFailed(false),[requested]);
   const isSprite=requested==="/images/profiles.png",isRemote=Boolean(requested?.startsWith("https://")),effectivePosition=positionUrl?"50% 50%":position;

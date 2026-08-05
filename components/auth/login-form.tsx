@@ -5,7 +5,7 @@ import { Eye, EyeOff, LoaderCircle, LockKeyhole, Mail } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { loginSchema, type LoginValues } from "@/lib/auth-schema";
-import { loginWithEmail, loginWithGoogle } from "@/lib/mock-auth";
+import { loginWithEmail, loginWithGoogle } from "@/lib/auth-service";
 
 function GoogleIcon(){return <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.6 12.23c0-.71-.06-1.4-.18-2.06H12v3.9h5.38a4.6 4.6 0 0 1-2 3.02v2.53h3.25c1.9-1.75 2.97-4.33 2.97-7.39Z" fill="#4285f4"/><path d="M12 22c2.7 0 4.98-.9 6.63-2.38l-3.25-2.53c-.9.6-2.05.97-3.38.97-2.6 0-4.81-1.76-5.6-4.13H3.04v2.6A10 10 0 0 0 12 22Z" fill="#34a853"/><path d="M6.4 13.93A6 6 0 0 1 6.08 12c0-.67.12-1.32.32-1.93v-2.6H3.04A10 10 0 0 0 2 12c0 1.62.39 3.15 1.04 4.53l3.36-2.6Z" fill="#fbbc05"/><path d="M12 5.94c1.47 0 2.78.5 3.82 1.5l2.88-2.89A9.65 9.65 0 0 0 12 2a10 10 0 0 0-8.96 5.47l3.36 2.6c.79-2.37 3-4.13 5.6-4.13Z" fill="#ea4335"/></svg>}
 

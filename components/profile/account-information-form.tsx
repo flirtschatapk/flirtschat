@@ -1,30 +1,38 @@
 "use client";
 
 import {zodResolver} from "@hookform/resolvers/zod";
-import {ArrowLeft,AtSign,BadgeCheck,BookOpen,Briefcase,CalendarDays,Check,Globe2,Languages,LoaderCircle,Mail,MapPin,Phone,Save,ShieldCheck,UserRound} from "lucide-react";
+import {ArrowLeft,AtSign,BadgeCheck,BookOpen,Briefcase,CalendarDays,Check,Globe2,Languages,LoaderCircle,Mail,MapPin,Phone,Save,ShieldCheck,UserRound,X} from "lucide-react";
 import Link from "next/link";
 import {useEffect,useRef,useState} from "react";
 import {useForm} from "react-hook-form";
 import {AppBottomNav} from "@/components/app-bottom-nav";
 import {ProfileImage} from "@/components/profile-image";
+import {useCurrentProfile} from "@/components/profile/current-profile-provider";
 import {accountProfileDefaults,accountProfileSchema,type AccountProfileValues} from "@/lib/account-profile-schema";
 import {globalCountries} from "@/lib/global-countries";
-import {getCurrentProfile,updateCurrentProfile} from "@/lib/profile-service";
+import {updateCurrentProfile} from "@/lib/profile-service";
 import type {CurrentProfile} from "@/lib/profile-types";
 import {checkUsernameAvailability} from "@/lib/signup-validation-service";
 
 type UsernameState="idle"|"checking"|"available"|"taken"|"current";
 
 export function AccountInformationForm(){
+  const shared=useCurrentProfile();
   const [ready,setReady]=useState(false),[saved,setSaved]=useState(false),[usernameState,setUsernameState]=useState<UsernameState>("current");
   const [profile,setProfile]=useState<CurrentProfile|null>(null),[loadError,setLoadError]=useState("");
   const originalUsername=useRef(accountProfileDefaults.username);
+  const successTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
   const {register,handleSubmit,watch,reset,formState:{errors,isSubmitting,isDirty}}=useForm<AccountProfileValues>({resolver:zodResolver(accountProfileSchema),mode:"onChange",defaultValues:accountProfileDefaults});
   const username=watch("username")??"",bio=watch("bio")??"";
 
   useEffect(()=>{
-    getCurrentProfile().then(value=>{setProfile(value);const merged={...accountProfileDefaults,fullName:value.displayName,username:value.username,bio:value.bio,gender:value.gender as AccountProfileValues["gender"],dateOfBirth:value.dateOfBirth,country:value.country,city:value.city,languages:value.languages.join(", "),occupation:value.occupation,education:value.education};originalUsername.current=value.username;reset(merged);setReady(true)}).catch(()=>{setLoadError("We're having trouble loading your account.");setReady(true)});
-  },[reset]);
+    if(shared.loading)return;
+    const value=shared.profile;
+    if(!value){setLoadError("We're having trouble loading your account.");setReady(true);return}
+    setProfile(value);const merged={...accountProfileDefaults,fullName:value.displayName,username:value.username,bio:value.bio,gender:value.gender as AccountProfileValues["gender"],dateOfBirth:value.dateOfBirth,country:value.country,city:value.city,languages:value.languages.join(", "),occupation:value.occupation,education:value.education};originalUsername.current=value.username;reset(merged);setReady(true);
+  },[reset,shared.loading,shared.profile]);
+
+  useEffect(()=>()=>{if(successTimer.current)clearTimeout(successTimer.current)},[]);
 
   useEffect(()=>{
     if(!ready)return;
@@ -38,7 +46,8 @@ export function AccountInformationForm(){
 
   const submit=handleSubmit(async values=>{
     if(usernameState==="taken"||usernameState==="checking")return;
-    try{const updated=await updateCurrentProfile({displayName:values.fullName,username:values.username,bio:values.bio,gender:values.gender,dateOfBirth:values.dateOfBirth,country:values.country,city:values.city,languages:values.languages.split(",").map(x=>x.trim()).filter(Boolean),occupation:values.occupation,education:values.education});setProfile(updated);originalUsername.current=updated.username;setUsernameState("current");reset(values);setSaved(true);setTimeout(()=>setSaved(false),3000)}catch{setLoadError("We couldn't save your profile. Please try again.")}
+    setLoadError("");setSaved(false);
+    try{const updated=await updateCurrentProfile({displayName:values.fullName,username:values.username,bio:values.bio,gender:values.gender,dateOfBirth:values.dateOfBirth,country:values.country,city:values.city,languages:values.languages.split(",").map(x=>x.trim()).filter(Boolean),occupation:values.occupation,education:values.education});setProfile(updated);originalUsername.current=updated.username;setUsernameState("current");reset(values);await shared.refresh();setSaved(true);if(successTimer.current)clearTimeout(successTimer.current);successTimer.current=setTimeout(()=>setSaved(false),4500)}catch{setLoadError("We couldn't save your profile. Please try again.")}
   });
 
   if(!ready)return <main className="account-info-loading"><LoaderCircle className="spin"/><span>Loading account information…</span></main>;
@@ -46,7 +55,7 @@ export function AccountInformationForm(){
   return <main className="account-info-page">
     <header className="account-info-header"><Link href="/settings" aria-label="Back to settings"><ArrowLeft/></Link><div><h1>Account Information</h1><p>Keep your identity and profile details up to date.</p></div><span className="account-security"><ShieldCheck/></span></header>
     <form className="account-info-shell" onSubmit={submit} noValidate>
-      {loadError&&<p className="field-error" role="alert">{loadError}</p>}<section className="account-photo-card"><span><ProfileImage src={profile?.primaryPhotoUrl||null} alt={profile?.displayName||"Your profile"}/><i/></span><div><strong>Profile photo</strong><small>Your current Flirtschat profile image</small></div><Link href="/onboarding">Manage photos</Link></section>
+      {loadError&&<p className="field-error account-dismissible-message" role="alert"><span>{loadError}</span><button type="button" onClick={()=>setLoadError("")} aria-label="Dismiss message"><X/></button></p>}<section className="account-photo-card"><span><ProfileImage src={profile?.primaryPhotoUrl||null} alt={profile?.displayName||"Your profile"}/><i/></span><div><strong>Profile photo</strong><small>Your current Flirtschat profile image</small></div><Link href="/onboarding">Manage photos</Link></section>
       <section className="account-form-card"><header><UserRound/><div><h2>Basic information</h2><p>Details created during signup</p></div></header><div className="account-fields">
         <Field label="Full name" icon={<UserRound/>} error={errors.fullName?.message}><input autoComplete="name" {...register("fullName")}/></Field>
         <Field label="Username" icon={<AtSign/>} error={errors.username?.message||(usernameState==="taken"?"This username is already taken":undefined)} status={usernameState==="checking"?"Checking…":usernameState==="available"?"Username is available":usernameState==="current"?"Current username":undefined}><input autoComplete="username" {...register("username")}/></Field>
@@ -65,7 +74,7 @@ export function AccountInformationForm(){
       </div></section>
       <div className="account-form-actions"><Link href="/settings">Cancel</Link><button type="submit" disabled={isSubmitting||usernameState==="checking"||usernameState==="taken"||!isDirty}>{isSubmitting?<><LoaderCircle className="spin"/>Saving…</>:<><Save/>Save Changes</>}</button></div>
     </form>
-    {saved&&<div className="account-save-toast" role="status"><Check/>Account information updated</div>}
+    {saved&&<div className="account-save-toast" role="status"><Check/>Account information updated<button type="button" onClick={()=>setSaved(false)} aria-label="Dismiss message"><X/></button></div>}
     <AppBottomNav active="settings"/>
   </main>
 }

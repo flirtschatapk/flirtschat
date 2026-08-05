@@ -38,7 +38,7 @@ export async function getProfiles(tab:DiscoverTab="all",filters?:DiscoverFilters
   return profiles;
 }
 
-async function swipe(target_id:string,action:"like"|"pass"|"super_like"){const supabase=createClient(),{data:{user}}=await supabase.auth.getUser();if(!user)throw new Error("Sign in required");const{error}=await supabase.from("fc_swipes").upsert({actor_id:user.id,target_id,action},{onConflict:"actor_id,target_id"});if(error)throw error;const{data}=await supabase.from("fc_swipes").select("actor_id").eq("actor_id",target_id).eq("target_id",user.id).in("action",["like","super_like"]).maybeSingle();return{matched:Boolean(data)}}
+async function swipe(target:string,swipe_action:"like"|"pass"|"super_like"){const supabase=createClient(),{data:{user}}=await supabase.auth.getUser();if(!user)throw new Error("Sign in required");const{data,error}=await supabase.rpc("fc_swipe_and_match",{target,swipe_action});if(error)throw error;const result=Array.isArray(data)?data[0]:data;return{matched:Boolean(result?.matched),matchId:typeof result?.match_id==="string"?result.match_id:null}}
 export async function likeProfile(id:string){return swipe(id,"like")}
 export async function dislikeProfile(id:string){await swipe(id,"pass");return{profileId:id}}
 export async function superLikeProfile(id:string){const result=await swipe(id,"super_like");return{...result,profileId:id}}

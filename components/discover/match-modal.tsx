@@ -5,12 +5,13 @@ import {Heart, LoaderCircle, MessageCircle} from "lucide-react";
 import {useRouter} from "next/navigation";
 import {useEffect, useRef, useState} from "react";
 import {ProfileImage} from "@/components/profile-image";
-import {updateMatchStatus} from "@/lib/match-storage";
+import {useCurrentProfile} from "@/components/profile/current-profile-provider";
 import type {DiscoverProfile} from "@/lib/discover-types";
 
 export function MatchModal({profile, onClose}: {profile: DiscoverProfile | null; onClose: () => void}) {
   const reduce = useReducedMotion();
   const router = useRouter();
+  const {profile:currentProfile}=useCurrentProfile();
   const actionLock = useRef(false);
   const [sending, setSending] = useState(false);
 
@@ -22,15 +23,12 @@ export function MatchModal({profile, onClose}: {profile: DiscoverProfile | null;
     if (!profile || actionLock.current) return;
     actionLock.current = true;
     setSending(true);
-    updateMatchStatus(profile.id, "messaged");
-    await new Promise(resolve => setTimeout(resolve, 280));
     router.push(`/chats/${profile.id}`);
   };
 
   const keepDiscovering = () => {
     if (!profile || actionLock.current) return;
     actionLock.current = true;
-    updateMatchStatus(profile.id, "dismissed");
     onClose();
     setTimeout(() => { actionLock.current = false; }, 300);
   };
@@ -51,8 +49,8 @@ export function MatchModal({profile, onClose}: {profile: DiscoverProfile | null;
       <span id="match-title">It&apos;s a Match!</span>
       <h2>You and {profile.name} liked each other</h2>
       <div className="match-avatars">
-        <ProfileImage position="50% 100%"/>
-        <ProfileImage position={profile.photos[0]}/>
+        <ProfileImage src={currentProfile?.primaryPhotoUrl||null} alt={currentProfile?.displayName||"Your profile"}/>
+        <ProfileImage src={profile.photos[0]||null} alt={profile.name}/>
       </div>
       <button className="match-message" type="button" disabled={sending} onClick={() => void sendMessage()}>
         {sending ? <><LoaderCircle className="spin"/>Opening chat…</> : <><MessageCircle/>Send Message</>}

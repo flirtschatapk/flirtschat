@@ -9,6 +9,7 @@ export type FlirtschatNotification={
   time:string;
   read:boolean;
   href:string;
+  avatarUrl?:string|null;
   avatarPosition?:string;
   previewPosition?:string;
 };
