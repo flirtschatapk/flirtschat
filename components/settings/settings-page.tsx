@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {useRouter} from "next/navigation";
 import {
+  ArrowLeft,
   Bell,
   ChevronRight,
   CircleHelp,
@@ -64,6 +65,16 @@ export function SettingsPage(){
   const [profile,setProfile]=useState<CurrentProfile|null>(null);
   const [activeSection,setActiveSection]=useState("account");
 
+  const backToDashboard=()=>{
+    const blockedReturnPaths=["/auth","/login","/signup","/forgot-password","/reset-password","/verify-email"];
+    try{
+      const previous=document.referrer?new URL(document.referrer):null;
+      const isSafeAppPage=previous?.origin===window.location.origin&&previous.pathname!==window.location.pathname&&!blockedReturnPaths.some(path=>previous.pathname===path||previous.pathname.startsWith(`${path}/`));
+      if(isSafeAppPage&&window.history.length>1){router.back();return}
+    }catch{}
+    router.push("/dashboard");
+  };
+
   useEffect(()=>{
     getCurrentProfile().then(value=>{setProfile(value);setPremium(value.premium)}).catch(()=>setFeatureNotice("We couldn't load your profile."));
     try{
@@ -100,7 +111,7 @@ export function SettingsPage(){
 
   return <main className="settings-page">
     <header className="settings-topbar">
-      <div><h1>Settings</h1><p>Manage your account, privacy and preferences <span>♥</span></p></div>
+      <div className="settings-heading"><button type="button" className="settings-back" onClick={backToDashboard} aria-label="Back to dashboard"><ArrowLeft/><span className="settings-back-desktop">Back to Dashboard</span><span className="settings-back-mobile">Back</span></button><div><h1>Settings</h1><p>Manage your account, privacy and preferences <span>♥</span></p></div></div>
       <Link className="settings-bell settings-header-gear metallic-setting-icon violet" href="/settings" aria-label="Settings"><Settings/></Link>
     </header>
 
