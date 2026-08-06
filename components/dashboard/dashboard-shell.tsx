@@ -51,9 +51,9 @@ export function DashboardShell() {
 }
 
 function ProfileCompletionBanner({profile}:{profile:CurrentProfile}){
-  const profileCompletion=getProfileCompletion(profile),{setCurrentProfile}=useCurrentProfile(),[dismissed,setDismissed]=useState(Boolean(profile.profileBannerDismissedAt)),[dismissing,setDismissing]=useState(false),[dismissError,setDismissError]=useState("");
+  const profileCompletion=getProfileCompletion(profile),router=useRouter(),{setCurrentProfile,refresh}=useCurrentProfile(),[dismissed,setDismissed]=useState(Boolean(profile.profileBannerDismissedAt)),[dismissing,setDismissing]=useState(false),[dismissError,setDismissError]=useState("");
   useEffect(()=>setDismissed(Boolean(profile.profileBannerDismissedAt)),[profile.profileBannerDismissedAt]);
-  const dismiss=async()=>{if(dismissing)return;setDismissed(true);setDismissing(true);setDismissError("");try{setCurrentProfile(await dismissProfileBanner())}catch{setDismissed(false);setDismissError("We couldn't hide this message. Try again.")}finally{setDismissing(false)}};
+  const dismiss=async()=>{if(dismissing)return;setDismissed(true);setDismissing(true);setDismissError("");try{setCurrentProfile(await dismissProfileBanner());await refresh();router.refresh()}catch{setDismissed(false);setDismissError("We couldn't hide this message. Try again.")}finally{setDismissing(false)}};
   if(profileCompletion>=100)return null;
   if(dismissed)return null;
   return <><DashboardCard className="dashboard-current-profile"><ProfileImage src={profile.primaryPhotoUrl||null} alt={profile.displayName||"Your profile"}/><div><small>{profile.username?`@${profile.username}`:`${profileCompletion}% complete`}</small><h2>{profile.displayName||"Complete your profile"}</h2><p>{profile.bio||"Add a bio so people can get to know you."}</p><span>{[profile.city,profile.country].filter(Boolean).join(", ")||"Location not added"}</span></div><a href="/profile">Edit profile</a><button className="dashboard-profile-later" type="button" onClick={()=>void dismiss()} disabled={dismissing} aria-label="Dismiss profile completion"><X/><span>Later</span></button></DashboardCard>{dismissError&&<p role="alert">{dismissError}</p>}</>;
