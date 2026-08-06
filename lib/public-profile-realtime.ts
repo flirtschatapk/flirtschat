@@ -13,7 +13,7 @@ function ensureChannel(){
   if(cleanupTimer){clearTimeout(cleanupTimer);cleanupTimer=null}
   if(channel)return;
   const supabase=createClient();
-  channel=supabase.channel("public-profile-updates",{config:{private:true}})
+  channel=supabase.channel("public-profile-updates")
     .on("broadcast",{event:"changed"},({payload})=>{
       const profileId=payload&&typeof payload.profile_id==="string"?payload.profile_id:null;
       listeners.forEach(listener=>listener(profileId));

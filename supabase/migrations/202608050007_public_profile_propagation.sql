@@ -51,7 +51,7 @@ language plpgsql security definer set search_path='' as $$
 declare changed_id uuid;
 begin
   changed_id:=coalesce(new.id,old.id);
-  perform realtime.send(jsonb_build_object('profile_id',changed_id),'changed','public-profile-updates',true);
+  perform realtime.send(jsonb_build_object('profile_id',changed_id),'changed','public-profile-updates',false);
   return coalesce(new,old);
 end $$;
 drop trigger if exists fc_public_profile_changed on public.fc_profiles;
@@ -64,7 +64,7 @@ language plpgsql security definer set search_path='' as $$
 declare changed_id uuid;
 begin
   changed_id:=coalesce(new.user_id,old.user_id);
-  perform realtime.send(jsonb_build_object('profile_id',changed_id),'changed','public-profile-updates',true);
+  perform realtime.send(jsonb_build_object('profile_id',changed_id),'changed','public-profile-updates',false);
   return coalesce(new,old);
 end $$;
 drop trigger if exists fc_public_photo_changed on public.fc_profile_photos;
@@ -72,8 +72,4 @@ drop trigger if exists fc_public_photo_updated on public.fc_profile_photos;
 create trigger fc_public_photo_changed after insert or delete on public.fc_profile_photos for each row execute function public.fc_notify_public_photo_change();
 create trigger fc_public_photo_updated after update of object_key,position,moderation_status on public.fc_profile_photos for each row execute function public.fc_notify_public_photo_change();
 
-drop policy if exists "authenticated users receive public profile invalidations" on realtime.messages;
-create policy "authenticated users receive public profile invalidations" on realtime.messages for select to authenticated using(
-  realtime.messages.extension='broadcast' and realtime.topic()='public-profile-updates'
-);
 commit;
