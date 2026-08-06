@@ -4,14 +4,14 @@ import {useEffect,useMemo,useState} from "react";
 import {ProfileImage} from "@/components/profile-image";
 import {usePresence} from "@/components/presence/presence-provider";
 import {getProfiles} from "@/lib/discover-service";
+import {subscribeToPublicProfileUpdates} from "@/lib/public-profile-realtime";
 import {useProfileLike} from "@/lib/use-profile-like";
-import {createClient} from "@/lib/supabase/client";
 type GlobalProfile={id:string;name:string;username?:string|null;age:number;place:string;position:string;tag:string;likes:number;verified:boolean;premium:boolean;isNew:boolean;online:boolean;lastSeen:string|null;size:"short"|"medium"|"tall";bio:string;interests:string[];goal:string;languages:string[];photoUrl?:string|null};
 const compactLikes=(value:number)=>value<1000?String(value):`${Number((value/1000).toFixed(1))}K`;
 export function GlobalProfileGrid({filter="For you",query="",verifiedOnly=false,minLikes=0}:{filter?:string;query?:string;verifiedOnly?:boolean;minLikes?:number}){
   const[profiles,setProfiles]=useState<GlobalProfile[]>([]),[loading,setLoading]=useState(true),[loadError,setLoadError]=useState(false),[reload,setReload]=useState(0);
   useEffect(()=>{let active=true;setLoading(true);setLoadError(false);getProfiles("all").then(rows=>{if(active)setProfiles(rows.map((p,index)=>({id:p.id,name:p.name,username:p.username,age:p.age,place:[p.city,p.country].filter(Boolean).join(", "),position:"50% 50%",tag:p.relationshipGoal,likes:0,verified:p.verified,premium:p.premium,isNew:p.isNew,online:false,lastSeen:p.lastSeen,size:index%3===0?"tall":index%3===1?"short":"medium",bio:p.bio,interests:p.interests,goal:p.relationshipGoal,languages:p.languages,photoUrl:p.photos[0]??null})))}).catch(error=>{if(!active)return;console.error("[dashboard/discovery] profile query failed",{code:typeof error==="object"&&error&&"code" in error?String(error.code):"unknown"});setLoadError(true)}).finally(()=>{if(active)setLoading(false)});return()=>{active=false}},[reload]);
-  useEffect(()=>{const supabase=createClient(),channel=supabase.channel("public-profile-updates",{config:{private:true}}).on("broadcast",{event:"changed"},()=>setReload(value=>value+1)).subscribe();return()=>{void supabase.removeChannel(channel)}},[]);
+  useEffect(()=>subscribeToPublicProfileUpdates(()=>setReload(value=>value+1)),[]);
   const visible=useMemo(()=>{const needle=query.trim().toLowerCase().replace(/^@/,"");let result=profiles.filter(person=>(!verifiedOnly||person.verified)&&person.likes>=minLikes&&`${person.name} ${person.username??""} ${person.place} ${person.tag}`.toLowerCase().includes(needle));if(filter==="Nearby")result=result.slice(0,4);if(filter==="New")result=result.filter(person=>person.isNew);if(filter==="Popular")result=[...result].sort((a,b)=>b.likes-a.likes);return result},[filter,minLikes,profiles,query,verifiedOnly]);
   if(loading)return <section className="global-feed"><div className="global-masonry">{Array.from({length:4},(_,i)=><div className="global-profile-card medium" key={i}/>)}</div></section>;
   if(loadError)return <section className="global-feed"><div className="global-no-results"><Users/><strong>Profiles couldn&apos;t load</strong><span>Check your connection and try again.</span><button type="button" onClick={()=>setReload(value=>value+1)}><LoaderCircle/>Retry</button></div></section>;

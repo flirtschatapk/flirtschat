@@ -7,6 +7,7 @@ import {DesktopSidebar} from "@/components/dashboard/desktop-sidebar";
 import {usePresence} from "@/components/presence/presence-provider";
 import {ProfileImage} from "@/components/profile-image";
 import {createClient} from "@/lib/supabase/client";
+import {subscribeToPublicProfileUpdates} from "@/lib/public-profile-realtime";
 import {markMatchViewed,openMatchConversation} from "@/lib/chat/chat-service";
 
 type Tab="new"|"super"|"all";
@@ -16,7 +17,7 @@ type MatchRow={match_id:string;profile_id:string;display_name:string|null;userna
 export function MatchesExperience(){
   const[items,setItems]=useState<Match[]>([]),[tab,setTab]=useState<Tab>("new"),[loading,setLoading]=useState(true),[error,setError]=useState("");
   const load=useCallback(async()=>{const supabase=createClient();setError("");const{data:{user}}=await supabase.auth.getUser();if(!user){setError("Please sign in");setLoading(false);return}const{data,error:matchError}=await supabase.rpc("fc_my_matches_with_status");if(matchError){console.error("[matches] query failed",{code:matchError.code});setError("Matches couldn't load.");setLoading(false);return}setItems(((data??[])as MatchRow[]).map(row=>({id:row.match_id,profileId:row.profile_id,name:row.display_name||row.username||"New user",username:row.username||null,avatarUrl:row.photo_key?`/api/media/profile-photo?key=${encodeURIComponent(row.photo_key)}`:null,lastSeen:row.last_seen_at,verified:Boolean(row.verified),premium:Boolean(row.premium),created:new Date(row.matched_at).toLocaleDateString(),isNew:Boolean(row.is_new),isSuperLike:Boolean(row.is_super_like)})));setLoading(false)},[]);
-  useEffect(()=>{void load();const supabase=createClient();const matches=supabase.channel("current-user-matches").on("postgres_changes",{event:"*",schema:"public",table:"fc_matches"},()=>void load()).on("postgres_changes",{event:"*",schema:"public",table:"fc_match_views"},()=>void load()).subscribe(),profiles=supabase.channel("public-profile-updates",{config:{private:true}}).on("broadcast",{event:"changed"},()=>void load()).subscribe();return()=>{void supabase.removeChannel(matches);void supabase.removeChannel(profiles)}},[load]);
+  useEffect(()=>{void load();const supabase=createClient();const matches=supabase.channel("current-user-matches").on("postgres_changes",{event:"*",schema:"public",table:"fc_matches"},()=>void load()).on("postgres_changes",{event:"*",schema:"public",table:"fc_match_views"},()=>void load()).subscribe(),unsubscribeProfiles=subscribeToPublicProfileUpdates(()=>void load());return()=>{void supabase.removeChannel(matches);unsubscribeProfiles()}},[load]);
   const counts=useMemo(()=>({new:items.filter(item=>item.isNew).length,super:items.filter(item=>item.isSuperLike).length,all:items.length}),[items]);
   const visible=useMemo(()=>tab==="new"?items.filter(item=>item.isNew):tab==="super"?items.filter(item=>item.isSuperLike):items,[items,tab]);
   const viewed=useCallback((matchId:string,isNew:boolean)=>setItems(current=>current.map(item=>item.id===matchId?{...item,isNew}:item)),[]);

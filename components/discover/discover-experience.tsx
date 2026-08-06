@@ -17,6 +17,7 @@ import type {DailyDiscoverQuota} from "@/lib/discover-entitlements";
 import {defaultDiscoverFilters, type DiscoverFilters, type DiscoverProfile, type DiscoverTab} from "@/lib/discover-types";
 import {DISCOVER_PREFERENCES_EVENT,DISCOVER_PREFERENCES_KEY,loadDiscoverPreferences,saveDiscoverPreferences} from "@/lib/discover-preferences";
 import {createClient} from "@/lib/supabase/client";
+import {subscribeToPublicProfileUpdates} from "@/lib/public-profile-realtime";
 
 export function DiscoverExperience() {
   const lock = useRef(false);
@@ -65,7 +66,7 @@ export function DiscoverExperience() {
     if (ready) void load();
   }, [ready, load]);
 
-  useEffect(()=>{if(!ready)return;const supabase=createClient(),channel=supabase.channel("public-profile-updates",{config:{private:true}}).on("broadcast",{event:"changed"},()=>void load()).subscribe();return()=>{void supabase.removeChannel(channel)}},[load,ready]);
+  useEffect(()=>{if(!ready)return;return subscribeToPublicProfileUpdates(()=>void load())},[load,ready]);
 
   useEffect(()=>{const timer=window.setInterval(()=>setNow(Date.now()),1000);return()=>window.clearInterval(timer)},[]);
 
