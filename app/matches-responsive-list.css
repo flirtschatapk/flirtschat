@@ -60,4 +60,5 @@
 .matches-page .match-message-button .matches-icon-rear{filter:none!important}
 .matches-page .match-message-button .matches-icon-front{filter:drop-shadow(0 2px 3px rgba(121,35,170,.28))!important}
 .matches-page .match-message-button .matches-icon-dot{filter:none!important}
+.matches-page .match-card-actions .match-message-button{width:44px!important;min-width:44px!important;max-width:44px!important;height:44px!important;min-height:44px!important;max-height:44px!important}
 .matches-page .matches-tabs{grid-template-columns:repeat(3,minmax(0,1fr))!important}.matches-page .matches-tabs button{min-height:44px;white-space:nowrap}.matches-page .matches-tabs button span{white-space:nowrap}@media(max-width:700px){.matches-page .matches-tabs{display:flex!important;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}.matches-page .matches-tabs button{flex:1 0 max-content!important;min-height:44px!important}.matches-page .matches-tabs::-webkit-scrollbar{display:none}}
