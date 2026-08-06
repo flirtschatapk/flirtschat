@@ -3,6 +3,8 @@ import {CookieConsent} from "@/components/cookie-consent";
 import {LanguageInitializer} from "@/components/language-initializer";
 import {SplashScreen} from "@/components/splash-screen";
 import {CurrentProfileProvider} from "@/components/profile/current-profile-provider";
+import {PresenceProvider} from "@/components/presence/presence-provider";
+import {AuthSessionManager} from "@/components/auth/auth-session-manager";
 import "./globals.css";
 import "./notifications-premium.css";
 import "./splash.css";
@@ -40,5 +42,5 @@ export const metadata:Metadata={
 };
 
 export default function RootLayout({children}:{children:React.ReactNode}){
-  return <html lang="en" data-flirtschat-theme="dark"><body><CurrentProfileProvider><LanguageInitializer/><SplashScreen/>{children}<CookieConsent/></CurrentProfileProvider></body></html>;
+  return <html lang="en" data-flirtschat-theme="dark"><body><CurrentProfileProvider><PresenceProvider><AuthSessionManager/><LanguageInitializer/><SplashScreen/>{children}<CookieConsent/></PresenceProvider></CurrentProfileProvider></body></html>;
 }

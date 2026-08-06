@@ -5,18 +5,21 @@ import {Heart} from "lucide-react";
 import Image from "next/image";
 import {usePathname,useRouter} from "next/navigation";
 import {useEffect,useState} from "react";
+import {WELCOME_KEY} from "@/components/root-visitor-gate";
 
 const SPLASH_DURATION=2800;
 const MOBILE_QUERY="(max-width: 767px)";
 
 export function SplashScreen(){
   const pathname=usePathname(),router=useRouter(),reduce=useReducedMotion();
-  const [visible,setVisible]=useState(true);
+  const [visible,setVisible]=useState(false);
 
   useEffect(()=>{
     if(pathname!=="/"){setVisible(false);return}
     if(!window.matchMedia(MOBILE_QUERY).matches){setVisible(false);return}
-    const finish=window.setTimeout(()=>router.replace("/login"),SPLASH_DURATION);
+    try{if(localStorage.getItem(WELCOME_KEY)==="true"){setVisible(false);return}}catch{}
+    setVisible(true);
+    const finish=window.setTimeout(()=>{try{localStorage.setItem(WELCOME_KEY,"true")}catch{}router.replace("/login")},SPLASH_DURATION);
     return()=>{
       window.clearTimeout(finish);
     };

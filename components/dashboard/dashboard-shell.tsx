@@ -10,6 +10,8 @@ import {useCurrentProfile} from "@/components/profile/current-profile-provider";
 import {HorizontalTabList} from "@/components/ui/horizontal-tab-list";
 import {isPremiumUser} from "@/lib/discover-entitlements";
 import type {CurrentProfile} from "@/lib/profile-types";
+import {getProfileCompletion} from "@/lib/profile-completion";
+import {dismissProfileBanner} from "@/lib/profile-service";
 import {DesktopSidebar} from "./desktop-sidebar";
 import {GlobalProfileGrid} from "./global-profile-grid";
 import {MobileBottomNav} from "./mobile-bottom-nav";
@@ -48,15 +50,11 @@ export function DashboardShell() {
   </main>;
 }
 
-const completionFields=(profile:CurrentProfile)=>[
-  profile.displayName,profile.username,profile.bio,profile.gender,profile.interestedIn,profile.dateOfBirth,
-  profile.country,profile.city,profile.languages.length,profile.interests.length,profile.relationshipGoal,profile.primaryPhotoUrl,
-];
-function getProfileCompletion(profile:CurrentProfile){const fields=completionFields(profile);return Math.round(fields.filter(Boolean).length/fields.length*100)}
 function ProfileCompletionBanner({profile}:{profile:CurrentProfile}){
-  const profileCompletion=getProfileCompletion(profile),[dismissed,setDismissed]=useState(false);
-  useEffect(()=>{if(profileCompletion>=100)setDismissed(false)},[profileCompletion]);
+  const profileCompletion=getProfileCompletion(profile),{setCurrentProfile}=useCurrentProfile(),[dismissed,setDismissed]=useState(Boolean(profile.profileBannerDismissedAt)),[dismissing,setDismissing]=useState(false),[dismissError,setDismissError]=useState("");
+  useEffect(()=>setDismissed(Boolean(profile.profileBannerDismissedAt)),[profile.profileBannerDismissedAt]);
+  const dismiss=async()=>{if(dismissing)return;setDismissed(true);setDismissing(true);setDismissError("");try{setCurrentProfile(await dismissProfileBanner())}catch{setDismissed(false);setDismissError("We couldn't hide this message. Try again.")}finally{setDismissing(false)}};
   if(profileCompletion>=100)return null;
   if(dismissed)return null;
-  return <DashboardCard className="dashboard-current-profile"><ProfileImage src={profile.primaryPhotoUrl||null} alt={profile.displayName||"Your profile"}/><div><small>{profile.username?`@${profile.username}`:`${profileCompletion}% complete`}</small><h2>{profile.displayName||"Complete your profile"}</h2><p>{profile.bio||"Add a bio so people can get to know you."}</p><span>{[profile.city,profile.country].filter(Boolean).join(", ")||"Location not added"}</span></div><a href="/profile">Edit profile</a><button className="dashboard-profile-later" type="button" onClick={()=>setDismissed(true)} aria-label="Dismiss profile completion"><X/><span>Later</span></button></DashboardCard>;
+  return <><DashboardCard className="dashboard-current-profile"><ProfileImage src={profile.primaryPhotoUrl||null} alt={profile.displayName||"Your profile"}/><div><small>{profile.username?`@${profile.username}`:`${profileCompletion}% complete`}</small><h2>{profile.displayName||"Complete your profile"}</h2><p>{profile.bio||"Add a bio so people can get to know you."}</p><span>{[profile.city,profile.country].filter(Boolean).join(", ")||"Location not added"}</span></div><a href="/profile">Edit profile</a><button className="dashboard-profile-later" type="button" onClick={()=>void dismiss()} disabled={dismissing} aria-label="Dismiss profile completion"><X/><span>Later</span></button></DashboardCard>{dismissError&&<p role="alert">{dismissError}</p>}</>;
 }

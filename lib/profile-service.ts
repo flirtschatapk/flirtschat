@@ -4,6 +4,7 @@ async function request(method:"GET"|"PATCH",payload?:CurrentProfileUpdate){const
 export const getCurrentProfile=()=>request("GET");
 export const refreshCurrentProfile=()=>request("GET");
 export const updateCurrentProfile=(payload:CurrentProfileUpdate)=>request("PATCH",payload);
+export async function dismissProfileBanner(){const response=await fetch("/api/profile/me",{method:"PATCH",headers:{"content-type":"application/json"},body:JSON.stringify({profileBannerDismissed:true}),cache:"no-store"});const result=await response.json().catch(()=>null) as {profile?:CurrentProfile;error?:{message?:string}}|null;if(!response.ok||!result?.profile)throw new ProfileRequestError(result?.error?.message??"We couldn't dismiss this message.",response.status);return result.profile}
 export async function createMinimumProfile(){await fetch("/api/auth/destination",{method:"POST",cache:"no-store"});return request("GET")}
 export async function completeOnboarding(payload:Record<string,unknown>){const response=await fetch("/api/profile/onboarding",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(payload)});const result=await response.json() as {profile?:CurrentProfile;error?:{message:string}};if(!response.ok||!result.profile)throw new Error(result.error?.message??"We couldn't save your profile.");return result.profile}
 export async function getProfileByUserId(userId:string){const current=await request("GET");return current.id===userId?current:null}

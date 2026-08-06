@@ -65,7 +65,7 @@ export function DiscoverExperience() {
     if (ready) void load();
   }, [ready, load]);
 
-  useEffect(()=>{if(!ready)return;const supabase=createClient(),channel=supabase.channel("discovery-profiles").on("postgres_changes",{event:"*",schema:"public",table:"fc_profiles"},()=>void load()).on("postgres_changes",{event:"*",schema:"public",table:"fc_profile_photos"},()=>void load()).subscribe();return()=>{void supabase.removeChannel(channel)}},[load,ready]);
+  useEffect(()=>{if(!ready)return;const supabase=createClient(),channel=supabase.channel("public-profile-updates",{config:{private:true}}).on("broadcast",{event:"changed"},()=>void load()).subscribe();return()=>{void supabase.removeChannel(channel)}},[load,ready]);
 
   useEffect(()=>{const timer=window.setInterval(()=>setNow(Date.now()),1000);return()=>window.clearInterval(timer)},[]);
 

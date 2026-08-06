@@ -1,4 +1,4 @@
 export type DiscoverTab="discover"|"all"|"new"|"nearby"|"verified"|"premium";
-export type DiscoverProfile={id:string;name:string;username?:string|null;age:number;gender:"Woman"|"Man";city:string;country:string;online:boolean;isNew:boolean;premium:boolean;verified:boolean;bio:string;interests:string[];photos:string[];relationshipGoal:string;languages:string[];distance:number;match?:boolean};
+export type DiscoverProfile={id:string;name:string;username?:string|null;age:number;gender:"Woman"|"Man";city:string;country:string;online:boolean;lastSeen:string|null;isNew:boolean;premium:boolean;verified:boolean;bio:string;interests:string[];photos:string[];relationshipGoal:string;languages:string[];distance:number;match?:boolean};
 export type DiscoverFilters={minAge:number;maxAge:number;maxDistance:number;showMe:"Women"|"Men"|"Everyone";onlineOnly:boolean;verifiedOnly:boolean;premiumOnly:boolean;relationshipGoal:string;interests:string[];country:string};
 export const defaultDiscoverFilters:DiscoverFilters={minAge:18,maxAge:45,maxDistance:100,showMe:"Everyone",onlineOnly:false,verifiedOnly:false,premiumOnly:false,relationshipGoal:"",interests:[],country:""};

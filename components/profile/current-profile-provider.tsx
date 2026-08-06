@@ -13,6 +13,7 @@ type CurrentProfileContextValue={
   error:string|null;
   unauthorized:boolean;
   refresh:()=>Promise<CurrentProfile|null>;
+  setCurrentProfile:(profile:CurrentProfile)=>void;
 };
 
 const CurrentProfileContext=createContext<CurrentProfileContextValue|null>(null);
@@ -59,7 +60,7 @@ export function CurrentProfileProvider({children}:{children:React.ReactNode}){
     return()=>{void supabase.removeChannel(channel)};
   },[refresh,user]);
 
-  const value=useMemo(()=>({user,profile,loading,error,unauthorized,refresh}),[user,profile,loading,error,unauthorized,refresh]);
+  const value=useMemo(()=>({user,profile,loading,error,unauthorized,refresh,setCurrentProfile:setProfile}),[user,profile,loading,error,unauthorized,refresh]);
   return <CurrentProfileContext.Provider value={value}>{children}</CurrentProfileContext.Provider>;
 }
 

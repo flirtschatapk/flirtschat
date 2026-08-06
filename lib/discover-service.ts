@@ -1,7 +1,7 @@
 import {createClient} from "@/lib/supabase/client";
 import type {DiscoverFilters,DiscoverProfile,DiscoverTab} from "./discover-types";
 
-type RpcRow={id:string;display_name:string|null;bio:string|null;gender:string|null;date_of_birth:string|null;country:string|null;city:string|null;languages:string[]|null;interests:string[]|null;relationship_goal:string|null;verified:boolean|null;premium:boolean|null;last_seen_at:string|null;created_at:string|null;photo_keys:string[]|null};
+type RpcRow={id:string;username:string|null;display_name:string|null;bio:string|null;gender:string|null;date_of_birth:string|null;country:string|null;city:string|null;languages:string[]|null;interests:string[]|null;relationship_goal:string|null;verified:boolean|null;premium:boolean|null;last_seen_at:string|null;created_at:string|null;photo_keys:string[]|null};
 export type DiscoveryActionState={premium:boolean;superLikesRemaining:number;rewindsRemaining:number;canRewind:boolean;boostStartedAt:string|null;boostExpiresAt:string|null;boostCooldownUntil:string|null};
 
 const age=(dob:string|null)=>dob?Math.max(18,Math.floor((Date.now()-new Date(dob).getTime())/31557600000)):18;
@@ -9,12 +9,12 @@ const text=(value:unknown)=>typeof value==="string"?value.trim():"";
 const stringArray=(value:unknown)=>Array.isArray(value)?value.filter((item):item is string=>typeof item==="string"&&Boolean(item.trim())):[];
 
 function fromRpc(row:RpcRow):DiscoverProfile{
-  return{id:row.id,name:text(row.display_name)||"New user",username:null,age:age(row.date_of_birth),gender:row.gender==="Man"?"Man":"Woman",city:text(row.city)||"Nearby",country:text(row.country),online:row.last_seen_at?Date.now()-new Date(row.last_seen_at).getTime()<300000:false,isNew:row.created_at?Date.now()-new Date(row.created_at).getTime()<604800000:false,premium:Boolean(row.premium),verified:Boolean(row.verified),bio:text(row.bio),interests:stringArray(row.interests),photos:stringArray(row.photo_keys).map(key=>`/api/media/profile-photo?key=${encodeURIComponent(key)}`),relationshipGoal:text(row.relationship_goal)||"Still exploring",languages:stringArray(row.languages),distance:0};
+  return{id:row.id,name:text(row.display_name)||text(row.username)||"New user",username:text(row.username)||null,age:age(row.date_of_birth),gender:row.gender==="Man"?"Man":"Woman",city:text(row.city)||"Nearby",country:text(row.country),online:row.last_seen_at?Date.now()-new Date(row.last_seen_at).getTime()<60000:false,lastSeen:row.last_seen_at,isNew:row.created_at?Date.now()-new Date(row.created_at).getTime()<604800000:false,premium:Boolean(row.premium),verified:Boolean(row.verified),bio:text(row.bio),interests:stringArray(row.interests),photos:stringArray(row.photo_keys).map(key=>`/api/media/profile-photo?key=${encodeURIComponent(key)}`),relationshipGoal:text(row.relationship_goal)||"Still exploring",languages:stringArray(row.languages),distance:0};
 }
 
 export async function getProfiles(tab:DiscoverTab="all",filters?:DiscoverFilters):Promise<DiscoverProfile[]>{
   const supabase=createClient(),{data:{user},error:userError}=await supabase.auth.getUser();if(userError||!user)throw userError??new Error("Authentication required");
-  const{data,error}=await supabase.rpc("fc_discover_profiles");
+  const{data,error}=await supabase.rpc("fc_public_profiles");
   if(error)throw error;
   let profiles=((data??[]) as RpcRow[]).map(fromRpc);
   profiles=profiles.filter(profile=>(tab!=="new"||profile.isNew)&&(tab!=="verified"||profile.verified)&&(tab!=="premium"||profile.premium)&&(!filters||profile.age>=filters.minAge&&profile.age<=filters.maxAge&&(filters.showMe==="Everyone"||filters.showMe==="Women"&&profile.gender==="Woman"||filters.showMe==="Men"&&profile.gender==="Man")&&(!filters.onlineOnly||profile.online)&&(!filters.verifiedOnly||profile.verified)&&(!filters.premiumOnly||profile.premium)&&(!filters.relationshipGoal||profile.relationshipGoal===filters.relationshipGoal)&&(!filters.country||profile.country===filters.country)&&(filters.interests.length===0||filters.interests.some(item=>profile.interests.includes(item)))));

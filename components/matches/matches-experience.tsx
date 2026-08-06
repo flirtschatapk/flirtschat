@@ -1,29 +1,33 @@
 "use client";
-import {BadgeCheck,Bell,Crown,Gift,Heart,MessageCircle} from "lucide-react";
-import {useCallback,useEffect,useState} from "react";
+import {BadgeCheck,Bell,Crown,Gift,Heart,MessageCircle,Sparkles} from "lucide-react";
+import {useCallback,useEffect,useMemo,useState} from "react";
+import {useRouter} from "next/navigation";
 import {AppBottomNav} from "@/components/app-bottom-nav";
 import {DesktopSidebar} from "@/components/dashboard/desktop-sidebar";
+import {usePresence} from "@/components/presence/presence-provider";
 import {ProfileImage} from "@/components/profile-image";
 import {createClient} from "@/lib/supabase/client";
+import {markMatchViewed,openMatchConversation} from "@/lib/chat/chat-service";
 
-type Match={id:string;profileId:string;name:string;username:string|null;avatarUrl:string|null;online:boolean;verified:boolean;premium:boolean;created:string};
-type MatchRow={match_id:string;profile_id:string;display_name:string|null;username:string|null;last_seen_at:string|null;verified:boolean|null;premium:boolean|null;matched_at:string;photo_key:string|null};
+type Tab="new"|"super"|"all";
+type Match={id:string;profileId:string;name:string;username:string|null;avatarUrl:string|null;lastSeen:string|null;verified:boolean;premium:boolean;created:string;isNew:boolean;isSuperLike:boolean};
+type MatchRow={match_id:string;profile_id:string;display_name:string|null;username:string|null;last_seen_at:string|null;verified:boolean|null;premium:boolean|null;matched_at:string;photo_key:string|null;is_new:boolean;is_super_like:boolean};
 
 export function MatchesExperience(){
-  const[items,setItems]=useState<Match[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState("");
-  const load=useCallback(async()=>{
-    const supabase=createClient();setError("");
-    const{data:{user}}=await supabase.auth.getUser();
-    if(!user){setError("Please sign in");setLoading(false);return}
-    const{data,error:matchError}=await supabase.rpc("fc_my_matches");
-    if(matchError){console.error("[matches] query failed",{code:matchError.code});setError("Matches couldn't load.");setLoading(false);return}
-    setItems(((data??[])as MatchRow[]).map(row=>({
-      id:row.match_id,profileId:row.profile_id,name:row.display_name||row.username||"New user",username:row.username||null,
-      avatarUrl:row.photo_key?`/api/media/profile-photo?key=${encodeURIComponent(row.photo_key)}`:null,
-      online:row.last_seen_at?Date.now()-new Date(row.last_seen_at).getTime()<300000:false,verified:Boolean(row.verified),premium:Boolean(row.premium),created:new Date(row.matched_at).toLocaleDateString(),
-    })));
-    setLoading(false);
-  },[]);
-  useEffect(()=>{void load();const supabase=createClient();const channel=supabase.channel("current-user-matches").on("postgres_changes",{event:"*",schema:"public",table:"fc_matches"},()=>void load()).subscribe();return()=>{void supabase.removeChannel(channel)}},[load]);
-  return <main className="matches-page"><DesktopSidebar active="matches"/><div className="matches-shell"><header className="matches-top-header"><a className="matches-brand" href="/matches">FLIRTSCHAT</a><div><a className="matches-header-action premium" href="/premium"><Crown/></a><a className="matches-header-action notification" href="/notifications"><Bell/></a></div></header><div className="matches-tabs"><button className="active"><Heart/><span>All Matches</span><b>{items.length}</b></button></div><section className="matches-list">{loading?<p>Loading matches…</p>:error?<p>{error}<button type="button" onClick={()=>void load()}>Retry</button></p>:items.length?items.map(person=><article className="match-person-card" key={person.id}><a className="match-person-avatar" href={`/profile/${person.profileId}`}><ProfileImage src={person.avatarUrl} alt={person.name}/><i className={person.online?"online":""}/></a><div className="match-person-copy"><a href={`/profile/${person.profileId}`}><h2>{person.name}{person.verified&&<BadgeCheck/>}</h2></a>{person.username&&<p>@{person.username}</p>}<small>{person.created}</small></div>{person.premium&&<Crown/>}<a className="match-message-button" href={`/chats/${person.id}`}><MessageCircle/></a><a className="match-message-button" href={`/gifts?to=${person.profileId}`}><Gift/></a></article>):<p>No matches yet.</p>}</section></div><AppBottomNav active="matches"/></main>;
+  const[items,setItems]=useState<Match[]>([]),[tab,setTab]=useState<Tab>("new"),[loading,setLoading]=useState(true),[error,setError]=useState("");
+  const load=useCallback(async()=>{const supabase=createClient();setError("");const{data:{user}}=await supabase.auth.getUser();if(!user){setError("Please sign in");setLoading(false);return}const{data,error:matchError}=await supabase.rpc("fc_my_matches_with_status");if(matchError){console.error("[matches] query failed",{code:matchError.code});setError("Matches couldn't load.");setLoading(false);return}setItems(((data??[])as MatchRow[]).map(row=>({id:row.match_id,profileId:row.profile_id,name:row.display_name||row.username||"New user",username:row.username||null,avatarUrl:row.photo_key?`/api/media/profile-photo?key=${encodeURIComponent(row.photo_key)}`:null,lastSeen:row.last_seen_at,verified:Boolean(row.verified),premium:Boolean(row.premium),created:new Date(row.matched_at).toLocaleDateString(),isNew:Boolean(row.is_new),isSuperLike:Boolean(row.is_super_like)})));setLoading(false)},[]);
+  useEffect(()=>{void load();const supabase=createClient();const matches=supabase.channel("current-user-matches").on("postgres_changes",{event:"*",schema:"public",table:"fc_matches"},()=>void load()).on("postgres_changes",{event:"*",schema:"public",table:"fc_match_views"},()=>void load()).subscribe(),profiles=supabase.channel("public-profile-updates",{config:{private:true}}).on("broadcast",{event:"changed"},()=>void load()).subscribe();return()=>{void supabase.removeChannel(matches);void supabase.removeChannel(profiles)}},[load]);
+  const counts=useMemo(()=>({new:items.filter(item=>item.isNew).length,super:items.filter(item=>item.isSuperLike).length,all:items.length}),[items]);
+  const visible=useMemo(()=>tab==="new"?items.filter(item=>item.isNew):tab==="super"?items.filter(item=>item.isSuperLike):items,[items,tab]);
+  const viewed=useCallback((matchId:string,isNew:boolean)=>setItems(current=>current.map(item=>item.id===matchId?{...item,isNew}:item)),[]);
+  const empty=tab==="new"?"No new matches":tab==="super"?"No Super Like matches":"No matches yet";
+  const tabs:[Tab,string,typeof Heart][]=[["new","New",Sparkles],["super","Super Likes",Crown],["all","All Matches",Heart]];
+  return <main className="matches-page"><DesktopSidebar active="matches"/><div className="matches-shell"><header className="matches-top-header"><a className="matches-brand" href="/matches">FLIRTSCHAT</a><div><a className="matches-header-action premium" href="/premium"><Crown/></a><a className="matches-header-action notification" href="/notifications"><Bell/></a></div></header><div className="matches-tabs" role="tablist" aria-label="Match filters">{tabs.map(([value,label,Icon])=><button type="button" role="tab" aria-selected={tab===value} className={tab===value?"active":""} onClick={()=>setTab(value)} key={value}><Icon/><span>{label}</span><b>{counts[value]}</b></button>)}</div><section className="matches-list">{loading?<p>Loading matches…</p>:error?<p>{error}<button type="button" onClick={()=>void load()}>Retry</button></p>:visible.length?visible.map(person=><MatchCard person={person} onViewed={viewed} key={person.id}/>):<p>{empty}</p>}</section></div><AppBottomNav active="matches"/></main>;
+}
+function MatchCard({person,onViewed}:{person:Match;onViewed:(matchId:string,isNew:boolean)=>void}){
+  const presence=usePresence(person.profileId,person.lastSeen),router=useRouter(),[opening,setOpening]=useState(false),[chatError,setChatError]=useState("");
+  const recordViewed=async()=>{if(!person.isNew)return;onViewed(person.id,false);try{await markMatchViewed(person.id)}catch(error){onViewed(person.id,true);console.error("[matches:mark-viewed]",{code:typeof error==="object"&&error&&"code" in error?String(error.code):"unknown"})}};
+  const openChat=async()=>{if(opening)return;setOpening(true);setChatError("");try{await recordViewed();const conversationId=await openMatchConversation(person.id);router.push(`/chats/${conversationId}`)}catch(error){console.error("[matches:open-chat]",{code:typeof error==="object"&&error&&"code" in error?String(error.code):"unknown"});setChatError("We couldn't open this conversation. Try again.");setOpening(false)}};
+  const openProfile=async()=>{await recordViewed();router.push(`/profile/${person.profileId}`)};
+  return <article className="match-person-card"><a className="match-person-avatar" href={`/profile/${person.profileId}`} onClick={event=>{event.preventDefault();void openProfile()}}><ProfileImage src={person.avatarUrl} alt={person.name}/><i className={presence.online?"online":""} aria-label={presence.online?"Online now":presence.label}/></a><div className="match-person-copy"><a href={`/profile/${person.profileId}`} onClick={event=>{event.preventDefault();void openProfile()}}><h2>{person.name}{person.verified&&<BadgeCheck/>}{person.premium&&<Crown/>}</h2></a>{person.username&&<p>@{person.username}</p>}<small>{presence.online?"Online now":presence.label}</small>{chatError&&<small role="alert">{chatError} <button type="button" onClick={()=>setChatError("")} aria-label="Dismiss message">×</button></small>}</div><div className="match-card-actions"><a className="match-message-button" href={`/gifts?to=${person.profileId}`} aria-label={`Send a gift to ${person.name}`}><Gift/></a><button className="match-message-button" type="button" onClick={()=>void openChat()} disabled={opening} aria-label={`Chat with ${person.name}`} aria-busy={opening}><MessageCircle/></button></div></article>;
 }
