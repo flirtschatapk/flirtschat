@@ -73,6 +73,7 @@ export async function getConversations(): Promise<Conversation[]> {
       lastActive: profile?.last_seen_at || "",
       lastMessage: last?.body || "Start a conversation",
       updatedAt: new Date(conversation.updated_at).toLocaleString(),
+      sortAt: conversation.updated_at,
       match: true,
       messages: list.map(row => {
         const status: MessageStatus = row.sender_id === user.id && other?.last_read_at && new Date(other.last_read_at) >= new Date(row.created_at) ? "seen" : "delivered";
