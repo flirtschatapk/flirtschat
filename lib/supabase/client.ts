@@ -7,7 +7,12 @@ let browserClient:SupabaseClient|undefined;
 export function createClient(){
   if(browserClient)return browserClient;
   const{url,key}=getSupabaseConfig();
-  browserClient=createBrowserClient(url,key);
+  browserClient=createBrowserClient(url,key,{
+    auth:{
+      persistSession:true,
+      autoRefreshToken:true,
+      detectSessionInUrl:true,
+    },
+  });
   return browserClient;
 }
-
