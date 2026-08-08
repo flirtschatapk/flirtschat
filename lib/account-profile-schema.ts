@@ -13,7 +13,16 @@ export const accountProfileSchema=z.object({
   languages:z.string().trim().max(100),
   occupation:z.string().trim().max(80),
   education:z.string().trim().max(100),
+  relationshipGoal:z.string(),
+  heightCm:z.string().refine(value=>!value||(/^\d+$/.test(value)&&Number(value)>=100&&Number(value)<=250),"Enter a height between 100 and 250 cm"),
+  zodiac:z.string(),
+  exercise:z.string(),
+  drinking:z.string(),
+  smoking:z.string(),
+  pronouns:z.string(),
+  children:z.string(),
+  beliefs:z.string().trim().max(100),
 });
 
 export type AccountProfileValues=z.infer<typeof accountProfileSchema>;
-export const accountProfileDefaults:AccountProfileValues={fullName:"",username:"",email:"",phone:"",bio:"",gender:"",dateOfBirth:"",country:"",city:"",languages:"",occupation:"",education:""};
+export const accountProfileDefaults:AccountProfileValues={fullName:"",username:"",email:"",phone:"",bio:"",gender:"",dateOfBirth:"",country:"",city:"",languages:"",occupation:"",education:"",relationshipGoal:"",heightCm:"",zodiac:"",exercise:"",drinking:"",smoking:"",pronouns:"",children:"",beliefs:""};

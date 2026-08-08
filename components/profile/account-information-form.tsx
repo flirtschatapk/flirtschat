@@ -1,7 +1,7 @@
 "use client";
 
 import {zodResolver} from "@hookform/resolvers/zod";
-import {ArrowLeft,AtSign,BadgeCheck,BookOpen,CalendarDays,Check,Globe2,Languages,LoaderCircle,Mail,MapPin,Phone,Save,ShieldCheck,UserRound,X} from "lucide-react";
+import {ArrowLeft,AtSign,BadgeCheck,Baby,BookOpen,CalendarDays,Check,Cigarette,Dumbbell,Globe2,Languages,LoaderCircle,Mail,MapPin,Moon,Phone,Ruler,Save,ShieldCheck,Sparkles,UserRound,Wine,X} from "lucide-react";
 import Link from "next/link";
 import {useRouter} from "next/navigation";
 import {useEffect,useRef,useState} from "react";
@@ -16,6 +16,7 @@ import type {CurrentProfile,CurrentProfileUpdate} from "@/lib/profile-types";
 import {checkUsernameAvailability} from "@/lib/signup-validation-service";
 
 type UsernameState="idle"|"checking"|"available"|"taken"|"current";
+const zodiacSigns=["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"];
 
 export function AccountInformationForm(){
   const router=useRouter();
@@ -32,7 +33,7 @@ export function AccountInformationForm(){
     if(shared.loading)return;
     const value=shared.profile;
     if(!value){setLoadError("We're having trouble loading your account.");setReady(true);return}
-    setProfile(value);const merged={...accountProfileDefaults,fullName:value.displayName,username:value.username,bio:value.bio,gender:value.gender as AccountProfileValues["gender"],dateOfBirth:value.dateOfBirth,country:value.country,city:value.city,languages:value.languages.join(", ")};originalUsername.current=value.username;originalValues.current=merged;reset(merged);setReady(true);
+    setProfile(value);const merged={...accountProfileDefaults,fullName:value.displayName,username:value.username,bio:value.bio,gender:value.gender as AccountProfileValues["gender"],dateOfBirth:value.dateOfBirth,country:value.country,city:value.city,languages:value.languages.join(", "),occupation:value.occupation,education:value.education,relationshipGoal:value.relationshipGoal,heightCm:value.heightCm?String(value.heightCm):"",zodiac:value.zodiac,exercise:value.exercise,drinking:value.drinking,smoking:value.smoking,pronouns:value.pronouns,children:value.children,beliefs:value.beliefs};originalUsername.current=value.username;originalValues.current=merged;reset(merged);setReady(true);
   },[reset,shared.loading,shared.profile]);
 
   useEffect(()=>()=>{if(successTimer.current)clearTimeout(successTimer.current)},[]);
@@ -50,7 +51,7 @@ export function AccountInformationForm(){
   const submit=handleSubmit(async values=>{
     if(usernameState==="taken"||usernameState==="checking")return;
     setLoadError("");setSaved(false);
-    try{const changes:CurrentProfileUpdate={};if(dirtyFields.fullName)changes.displayName=values.fullName;if(dirtyFields.username)changes.username=values.username;if(dirtyFields.bio)changes.bio=values.bio;if(dirtyFields.gender)changes.gender=values.gender;if(dirtyFields.dateOfBirth)changes.dateOfBirth=values.dateOfBirth;if(dirtyFields.country)changes.country=values.country;if(dirtyFields.city)changes.city=values.city;if(dirtyFields.languages)changes.languages=values.languages.split(",").map(x=>x.trim()).filter(Boolean);const updated=await updateCurrentProfile(changes);setProfile(updated);shared.setCurrentProfile(updated);originalUsername.current=updated.username;originalValues.current=values;setUsernameState("current");reset(values);router.refresh();setSaved(true);if(successTimer.current)clearTimeout(successTimer.current);successTimer.current=setTimeout(()=>setSaved(false),4500)}catch{setLoadError("We couldn't save your profile. Please try again.")}
+    try{const changes:CurrentProfileUpdate={};if(dirtyFields.fullName)changes.displayName=values.fullName;if(dirtyFields.username)changes.username=values.username;if(dirtyFields.bio)changes.bio=values.bio;if(dirtyFields.gender)changes.gender=values.gender;if(dirtyFields.dateOfBirth)changes.dateOfBirth=values.dateOfBirth;if(dirtyFields.country)changes.country=values.country;if(dirtyFields.city)changes.city=values.city;if(dirtyFields.languages)changes.languages=values.languages.split(",").map(x=>x.trim()).filter(Boolean);if(dirtyFields.occupation)changes.occupation=values.occupation;if(dirtyFields.education)changes.education=values.education;if(dirtyFields.relationshipGoal)changes.relationshipGoal=values.relationshipGoal;if(dirtyFields.heightCm)changes.heightCm=values.heightCm?Number(values.heightCm):null;if(dirtyFields.zodiac)changes.zodiac=values.zodiac;if(dirtyFields.exercise)changes.exercise=values.exercise;if(dirtyFields.drinking)changes.drinking=values.drinking;if(dirtyFields.smoking)changes.smoking=values.smoking;if(dirtyFields.pronouns)changes.pronouns=values.pronouns;if(dirtyFields.children)changes.children=values.children;if(dirtyFields.beliefs)changes.beliefs=values.beliefs;const updated=await updateCurrentProfile(changes);setProfile(updated);shared.setCurrentProfile(updated);originalUsername.current=updated.username;originalValues.current=values;setUsernameState("current");reset(values);router.refresh();setSaved(true);if(successTimer.current)clearTimeout(successTimer.current);successTimer.current=setTimeout(()=>setSaved(false),4500)}catch{setLoadError("We couldn't save your profile. Please try again.")}
   });
   const cancel=()=>{if(isDirty){reset(originalValues.current);setUsernameState("current");setLoadError("");return}router.push("/settings")};
 
@@ -73,6 +74,17 @@ export function AccountInformationForm(){
         <Field label="Country" icon={<Globe2/>} error={errors.country?.message}><select {...register("country")}><option value="">Choose country</option>{globalCountries.map(country=><option key={country}>{country}</option>)}</select></Field>
         <Field label="City" icon={<MapPin/>} error={errors.city?.message}><input autoComplete="address-level2" {...register("city")}/></Field>
         <Field label="Languages" icon={<Languages/>} error={errors.languages?.message}><input placeholder="English, Spanish" {...register("languages")}/></Field>
+        <Field label="Looking for" icon={<Sparkles/>} error={errors.relationshipGoal?.message}><select {...register("relationshipGoal")}><option value="">Not added</option>{["Serious Relationship","Fun & Casual","Make Friends","Still Exploring"].map(value=><option key={value}>{value}</option>)}</select></Field>
+        <Field label="Work" icon={<UserRound/>} error={errors.occupation?.message}><input placeholder="Software Engineer" {...register("occupation")}/></Field>
+        <Field label="Education" icon={<BookOpen/>} error={errors.education?.message}><input placeholder="University of Malaya" {...register("education")}/></Field>
+        <Field label="Height (cm)" icon={<Ruler/>} error={errors.heightCm?.message}><input type="number" min="100" max="250" placeholder="170" {...register("heightCm")}/></Field>
+        <Field label="Zodiac" icon={<Sparkles/>} error={errors.zodiac?.message}><select {...register("zodiac")}><option value="">Not added</option>{zodiacSigns.map(value=><option key={value}>{value}</option>)}</select></Field>
+        <Field label="Exercise" icon={<Dumbbell/>} error={errors.exercise?.message}><select {...register("exercise")}><option value="">Not added</option>{["Never","Sometimes","Often","Daily"].map(value=><option key={value}>{value}</option>)}</select></Field>
+        <Field label="Drinking" icon={<Wine/>} error={errors.drinking?.message}><select {...register("drinking")}><option value="">Not added</option>{["Never","Socially","Occasionally","Often"].map(value=><option key={value}>{value}</option>)}</select></Field>
+        <Field label="Smoking" icon={<Cigarette/>} error={errors.smoking?.message}><select {...register("smoking")}><option value="">Not added</option>{["Never","Occasionally","Regularly","Trying to quit"].map(value=><option key={value}>{value}</option>)}</select></Field>
+        <Field label="Pronouns" icon={<UserRound/>} error={errors.pronouns?.message}><select {...register("pronouns")}><option value="">Not added</option>{["He/Him","She/Her","They/Them","Other","Prefer not to say"].map(value=><option key={value}>{value}</option>)}</select></Field>
+        <Field label="Children" icon={<Baby/>} error={errors.children?.message}><select {...register("children")}><option value="">Not added</option>{["Don’t have children","Have children","Want children","Don’t want children","Not sure"].map(value=><option key={value}>{value}</option>)}</select></Field>
+        <Field label="Beliefs" icon={<Moon/>} error={errors.beliefs?.message}><input placeholder="Prefer not to say" {...register("beliefs")}/></Field>
       </div></section>
       <div className="account-form-actions"><button type="button" className="account-cancel" onClick={cancel}>Cancel</button><button type="submit" disabled={isSubmitting||usernameState==="checking"||usernameState==="taken"||!isDirty}>{isSubmitting?<><LoaderCircle className="spin"/>Saving…</>:<><Save/>Save Changes</>}</button></div>
     </form>
