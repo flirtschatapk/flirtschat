@@ -1,0 +1,10 @@
+.fc-chat-page .fc-conversations>header .fc-list-back,
+.fc-chat-page .fc-thread-header .fc-thread-menu-btn{background:rgba(12,12,15,.96)!important;background-image:none!important;border:1px solid rgba(255,255,255,.14)!important;color:#fff!important;box-shadow:0 4px 12px rgba(0,0,0,.28)!important;filter:none!important;transition:background-color .18s,border-color .18s,color .18s,transform .18s!important}
+.fc-chat-page .fc-conversations>header .fc-list-back:hover,
+.fc-chat-page .fc-thread-header .fc-thread-menu-btn:hover{background:rgba(25,25,30,.98)!important;background-image:none!important;border-color:rgba(255,255,255,.22)!important;color:#fff!important;box-shadow:0 5px 14px rgba(0,0,0,.34)!important;filter:none!important;transform:none!important}
+.fc-chat-page .fc-conversations>header .fc-list-back:active,
+.fc-chat-page .fc-thread-header .fc-thread-menu-btn:active{background:rgba(20,20,24,.98)!important;background-image:none!important;color:#fff!important;box-shadow:0 3px 9px rgba(0,0,0,.32)!important;transform:scale(.97)!important}
+.fc-chat-page .fc-conversations>header .fc-list-back:focus-visible,
+.fc-chat-page .fc-thread-header .fc-thread-menu-btn:focus-visible{outline:2px solid rgba(255,255,255,.7)!important;outline-offset:2px}
+.fc-chat-page .fc-conversations>header .fc-list-back svg,
+.fc-chat-page .fc-thread-header .fc-thread-menu-btn svg{color:#fff!important;filter:none!important}
