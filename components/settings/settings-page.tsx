@@ -65,15 +65,7 @@ export function SettingsPage(){
   const [profile,setProfile]=useState<CurrentProfile|null>(null);
   const [activeSection,setActiveSection]=useState("account");
 
-  const backToDashboard=()=>{
-    const blockedReturnPaths=["/auth","/login","/signup","/forgot-password","/reset-password","/verify-email"];
-    try{
-      const previous=document.referrer?new URL(document.referrer):null;
-      const isSafeAppPage=previous?.origin===window.location.origin&&previous.pathname!==window.location.pathname&&!blockedReturnPaths.some(path=>previous.pathname===path||previous.pathname.startsWith(`${path}/`));
-      if(isSafeAppPage&&window.history.length>1){router.back();return}
-    }catch{}
-    router.push("/dashboard");
-  };
+  const backToDashboard=()=>router.push("/dashboard");
 
   useEffect(()=>{
     getCurrentProfile().then(value=>{setProfile(value);setPremium(value.premium)}).catch(()=>setFeatureNotice("We couldn't load your profile."));
