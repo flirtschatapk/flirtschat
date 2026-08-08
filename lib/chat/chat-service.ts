@@ -4,6 +4,8 @@ import type { ChatMessage, Conversation, MessageStatus } from "./chat-types";
 type OwnMember = { conversation_id: string; last_read_at: string | null };
 type OtherMember = OwnMember & { user_id: string };
 type Profile = { id: string; display_name: string; username: string | null; last_seen_at: string | null; verified: boolean | null; photo_key: string | null };
+export type MessageRow = { id: string; conversation_id: string; sender_id: string; body: string; kind: string; media_path: string | null; reply_to: string | null; created_at: string };
+export function mapMessageRow(row: MessageRow, userId: string, otherLastReadAt?: string | null): ChatMessage { const status: MessageStatus = row.sender_id === userId && otherLastReadAt && new Date(otherLastReadAt) >= new Date(row.created_at) ? "seen" : row.sender_id === userId ? "sent" : "delivered"; return { id: row.id, conversationId: row.conversation_id, sender: row.sender_id === userId ? "me" : "them", type: row.kind === "image" ? "photo" : row.kind === "voice" ? "voice" : "text", text: row.body, createdAt: new Date(row.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }), status, replyTo: row.reply_to || undefined, mediaUrl: row.media_path || undefined }; }
 
 export async function openMatchConversation(matchId: string): Promise<string> {
   const supabase = createClient();
@@ -75,10 +77,7 @@ export async function getConversations(): Promise<Conversation[]> {
       updatedAt: new Date(conversation.updated_at).toLocaleString(),
       sortAt: conversation.updated_at,
       match: true,
-      messages: list.map(row => {
-        const status: MessageStatus = row.sender_id === user.id && other?.last_read_at && new Date(other.last_read_at) >= new Date(row.created_at) ? "seen" : "delivered";
-        return { id: row.id, conversationId: conversation.id, sender: row.sender_id === user.id ? "me" : "them", type: row.kind === "image" ? "photo" : row.kind === "voice" ? "voice" : "text", text: row.body, createdAt: new Date(row.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }), status, replyTo: row.reply_to || undefined, mediaUrl: row.media_path || undefined } as ChatMessage;
-      }),
+      messages: list.map(row => mapMessageRow(row as MessageRow, user.id, other?.last_read_at)),
     } satisfies Conversation;
   });
 }
