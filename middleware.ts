@@ -22,7 +22,7 @@ export async function middleware(request:NextRequest){
   }
   const isProtected=protectedPrefixes.some(prefix=>matches(pathname,prefix));
   if(!user){
-    if(isProtected){const login=new URL("/login",request.url);login.searchParams.set("next",pathname);return NextResponse.redirect(login)}
+    if(isProtected){if(process.env.NODE_ENV==="development")console.info("[AuthTrace] redirect to login reason",{reason:"middleware:no_session",pathname});const login=new URL("/login",request.url);login.searchParams.set("next",pathname);return NextResponse.redirect(login)}
     return response;
   }
   const{data:profile,error}=await supabase.from("fc_profiles").select("onboarding_completed").eq("id",user.id).maybeSingle();

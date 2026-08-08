@@ -11,7 +11,7 @@ const STORAGE_WRITE_THROTTLE_MS=30_000;
 const CHANNEL="flirtschat-auth-activity";
 const key=(userId:string)=>`flirtschat:last_activity:${userId}`;
 const debug=(message:string,details?:Record<string,unknown>)=>{
-  if(process.env.NODE_ENV==="development")console.info("[Auth]",message,details??{});
+  if(process.env.NODE_ENV==="development")console.info("[AuthTrace]",message,details??{});
 };
 
 export function AuthSessionManager(){
@@ -43,7 +43,7 @@ export function AuthSessionManager(){
     if(loggingOut.current||!user.current)return;
     loggingOut.current=true;
     const expiredUserId=user.current.id;
-    debug("automatic logout",{reason});
+    debug("signOut reason",{reason});
     clearTimer();
     clearPrivateCaches();
     try{localStorage.removeItem(key(expiredUserId))}catch{}
@@ -126,6 +126,17 @@ export function AuthSessionManager(){
   },[acceptActivity]);
 
   useEffect(()=>{
+    const popstate=()=>debug("browser popstate",{pathname:window.location.pathname});
+    window.addEventListener("popstate",popstate);
+    return()=>window.removeEventListener("popstate",popstate);
+  },[]);
+
+  useEffect(()=>{
+    debug("route change",{pathname});
+    activity(true);
+  },[activity,pathname]);
+
+  useEffect(()=>{
     const supabase=createClient();
     if("BroadcastChannel" in window)broadcast.current=new BroadcastChannel(CHANNEL);
     const receive=(event:MessageEvent<{userId?:string;timestamp?:number}>)=>{
@@ -180,6 +191,5 @@ export function AuthSessionManager(){
     };
   },[activity,persistCurrent]);
 
-  useEffect(()=>{activity(true)},[activity,pathname]);
   return null;
 }

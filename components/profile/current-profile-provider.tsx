@@ -12,15 +12,18 @@ type CurrentProfileContextValue={
   loading:boolean;
   error:string|null;
   unauthorized:boolean;
+  authStatus:AuthStatus;
   refresh:()=>Promise<CurrentProfile|null>;
   setCurrentProfile:(profile:CurrentProfile)=>void;
 };
+type AuthStatus="loading"|"authenticated"|"unauthenticated";
 
 const CurrentProfileContext=createContext<CurrentProfileContextValue|null>(null);
 
 export function CurrentProfileProvider({children}:{children:React.ReactNode}){
-  const [user,setUser]=useState<User|null>(null),[profile,setProfile]=useState<CurrentProfile|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState<string|null>(null),[unauthorized,setUnauthorized]=useState(false);
+  const [user,setUser]=useState<User|null>(null),[profile,setProfile]=useState<CurrentProfile|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState<string|null>(null),[unauthorized,setUnauthorized]=useState(false),[authStatus,setAuthStatus]=useState<AuthStatus>("loading");
   const mounted=useRef(true);
+  const authRestored=useRef(false);
   const refresh=useCallback(async()=>{
     setError(null);
     try{
@@ -37,15 +40,25 @@ export function CurrentProfileProvider({children}:{children:React.ReactNode}){
   useEffect(()=>{
     mounted.current=true;
     const supabase=createClient();
-    void supabase.auth.getUser().then(({data})=>{
+    const trace=(message:string,details?:Record<string,unknown>)=>{if(process.env.NODE_ENV==="development")console.info(`[AuthTrace] ${message}`,details??{})};
+    void supabase.auth.getUser().then(({data,error:authError})=>{
       if(!mounted.current)return;
-      setUser(data.user);
-      if(data.user)void refresh();else{setUnauthorized(true);setLoading(false)}
+      trace("auth state",{source:"getUser",hasUser:Boolean(data.user),error:authError?.code??null});
+      if(authError)return;
+      if(data.user){setUser(data.user);setAuthStatus("authenticated");void refresh()}
+      else if(authRestored.current){trace("redirect to login reason",{reason:"confirmed_unauthenticated"});setAuthStatus("unauthenticated");setUnauthorized(true);setLoading(false)}
     });
-    const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,nextSession)=>{
+    const {data:{subscription}}=supabase.auth.onAuthStateChange((event,nextSession)=>{
+      trace("auth state",{source:"onAuthStateChange",event,hasSession:Boolean(nextSession)});
+      if(event==="INITIAL_SESSION")authRestored.current=true;
+      if(event==="SIGNED_OUT"){
+        trace("redirect to login reason",{reason:"confirmed_signed_out"});
+        setAuthStatus("unauthenticated");setUser(null);setProfile(null);setUnauthorized(true);setLoading(false);return;
+      }
       const nextUser=nextSession?.user??null;
-      setUser(nextUser);
-      if(nextUser){setLoading(true);void refresh()}else{setProfile(null);setUnauthorized(true);setLoading(false)}
+      if(!nextUser)return;
+      setAuthStatus("authenticated");setUser(nextUser);setUnauthorized(false);
+      if(event==="SIGNED_IN"||event==="INITIAL_SESSION"){setLoading(true);void refresh()}
     });
     return()=>{mounted.current=false;subscription.unsubscribe()};
   },[refresh]);
@@ -60,7 +73,7 @@ export function CurrentProfileProvider({children}:{children:React.ReactNode}){
     return()=>{void supabase.removeChannel(channel)};
   },[refresh,user]);
 
-  const value=useMemo(()=>({user,profile,loading,error,unauthorized,refresh,setCurrentProfile:setProfile}),[user,profile,loading,error,unauthorized,refresh]);
+  const value=useMemo(()=>({user,profile,loading,error,unauthorized,authStatus,refresh,setCurrentProfile:setProfile}),[user,profile,loading,error,unauthorized,authStatus,refresh]);
   return <CurrentProfileContext.Provider value={value}>{children}</CurrentProfileContext.Provider>;
 }
 
