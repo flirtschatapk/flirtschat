@@ -28,10 +28,12 @@ export function CurrentProfileProvider({children}:{children:React.ReactNode}){
     setError(null);
     try{
       const value=await getCurrentProfile();
+      if(process.env.NODE_ENV==="development")console.info("[AuthTrace] profile status",{status:"loaded"});
       if(mounted.current){setProfile(value);setUnauthorized(false)}
       return value;
     }catch(reason){
       const signedOut=reason instanceof ProfileRequestError&&reason.status===401;
+      if(process.env.NODE_ENV==="development")console.info("[AuthTrace] profile status",{status:signedOut?401:"error"});
       if(mounted.current){setProfile(null);setUnauthorized(false);setError(signedOut?"We couldn't confirm your profile session.":"We couldn't load your profile.")}
       return null;
     }finally{if(mounted.current)setLoading(false)}
@@ -47,7 +49,7 @@ export function CurrentProfileProvider({children}:{children:React.ReactNode}){
       trace("current user",{hasUser:Boolean(data.user)});
       if(authError)return;
       if(data.user){setUser(data.user);setAuthStatus("authenticated");void refresh()}
-      else if(authRestored.current){trace("redirect to login reason",{reason:"confirmed_unauthenticated"});setAuthStatus("unauthenticated");setUnauthorized(true);setLoading(false)}
+      else if(authRestored.current){void supabase.auth.getSession().then(({data:{session},error:sessionError})=>{if(!mounted.current)return;trace("current session",{hasSession:Boolean(session),error:sessionError?.code??null});if(session?.user){setUser(session.user);setAuthStatus("authenticated");void refresh()}else{trace("redirect to login reason",{reason:"confirmed_unauthenticated"});setAuthStatus("unauthenticated");setUnauthorized(true);setLoading(false)}})}
     });
     const {data:{subscription}}=supabase.auth.onAuthStateChange((event,nextSession)=>{
       trace("auth state",{source:"onAuthStateChange",event,hasSession:Boolean(nextSession)});

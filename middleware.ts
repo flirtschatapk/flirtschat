@@ -14,25 +14,27 @@ export async function middleware(request:NextRequest){
   let response=NextResponse.next({request});
   const supabase=createServerClient(url,key,{cookies:{getAll:()=>request.cookies.getAll(),setAll(values){values.forEach(({name,value})=>request.cookies.set(name,value));response=NextResponse.next({request});values.forEach(({name,value,options})=>response.cookies.set(name,value,options))}}});
   const{data:{user}}=await supabase.auth.getUser();
+  if(process.env.NODE_ENV==="development"&&pathname==="/dashboard")console.info(`[AuthTrace] dashboard middleware user present=${Boolean(user)}`);
   if(process.env.NODE_ENV==="development")console.info("[AuthTrace] middleware decision",{pathname,authenticated:Boolean(user)});
+  const redirectWithSessionCookies=(url:URL)=>{const redirect=NextResponse.redirect(url);response.cookies.getAll().forEach(cookie=>redirect.cookies.set(cookie));return redirect};
   if(matches(pathname,"/admin")&&pathname!=="/admin/login"){
-    if(!user)return NextResponse.redirect(new URL("/admin/login",request.url));
+    if(!user)return redirectWithSessionCookies(new URL("/admin/login",request.url));
     const role=user.app_metadata?.role;
-    if(!["admin","moderator","super_admin"].includes(role))return NextResponse.redirect(new URL("/dashboard",request.url));
+    if(!["admin","moderator","super_admin"].includes(role))return redirectWithSessionCookies(new URL("/dashboard",request.url));
     return response;
   }
   const isProtected=protectedPrefixes.some(prefix=>matches(pathname,prefix));
   if(!user){
-    if(isProtected){if(process.env.NODE_ENV==="development")console.info("[AuthTrace] redirect to login reason",{reason:"middleware:no_session",pathname});const login=new URL("/login",request.url);login.searchParams.set("next",pathname);return NextResponse.redirect(login)}
+    if(isProtected){if(process.env.NODE_ENV==="development")console.info("[AuthTrace] redirect to login reason",{reason:"middleware:no_session",pathname});const login=new URL("/login",request.url);login.searchParams.set("next",pathname);return redirectWithSessionCookies(login)}
     return response;
   }
   const{data:profile,error}=await supabase.from("fc_profiles").select("onboarding_completed").eq("id",user.id).maybeSingle();
-  if(error&&isProtected)return NextResponse.redirect(new URL("/auth/retry",request.url));
+  if(error&&isProtected){if(process.env.NODE_ENV==="development")console.info("[AuthTrace] middleware profile error",{pathname});return response}
   const complete=Boolean(profile?.onboarding_completed);
-  if(!complete&&isProtected&&pathname!=="/onboarding")return NextResponse.redirect(new URL("/onboarding",request.url));
-  if(complete&&pathname==="/onboarding")return NextResponse.redirect(new URL("/dashboard",request.url));
-  if(complete&&authPages.has(pathname))return NextResponse.redirect(new URL("/dashboard",request.url));
-  if(!complete&&authPages.has(pathname))return NextResponse.redirect(new URL("/onboarding",request.url));
+  if(!complete&&isProtected&&pathname!=="/onboarding")return redirectWithSessionCookies(new URL("/onboarding",request.url));
+  if(complete&&pathname==="/onboarding")return redirectWithSessionCookies(new URL("/dashboard",request.url));
+  if(complete&&authPages.has(pathname))return redirectWithSessionCookies(new URL("/dashboard",request.url));
+  if(!complete&&authPages.has(pathname))return redirectWithSessionCookies(new URL("/onboarding",request.url));
   return response;
 }
 

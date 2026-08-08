@@ -21,9 +21,9 @@ const tabs=["For you","Nearby","New","Popular"] as const;
 
 export function DashboardShell() {
   const router=useRouter();
-  const {profile,loading,error,unauthorized,refresh}=useCurrentProfile();
+  const {profile,loading,error,authStatus,user,refresh}=useCurrentProfile();
   const [timedOut,setTimedOut]=useState(false),[filter,setFilter]=useState("For you"),[query,setQuery]=useState(""),[filtersOpen,setFiltersOpen]=useState(false),[verifiedOnly,setVerifiedOnly]=useState(false),[minLikes,setMinLikes]=useState(0),[welcomeVisible,setWelcomeVisible]=useState(true);
-  useEffect(()=>{if(unauthorized)router.replace("/login");else if(profile&&!profile.onboardingCompleted)router.replace("/onboarding")},[profile,router,unauthorized]);
+  useEffect(()=>{if(process.env.NODE_ENV==="development")console.info(`[AuthTrace] dashboard auth user present=${Boolean(user)}`,{authStatus});if(authStatus==="unauthenticated"){if(process.env.NODE_ENV==="development")console.info("[AuthTrace] redirect login source=dashboard-auth");router.replace("/login")}else if(authStatus==="authenticated"&&profile&&!profile.onboardingCompleted)router.replace("/onboarding")},[authStatus,profile,router,user]);
   useEffect(()=>{if(!loading){setTimedOut(false);return}const timeout=window.setTimeout(()=>setTimedOut(true),8000);return()=>window.clearTimeout(timeout)},[loading]);
   useEffect(()=>{try{setWelcomeVisible(localStorage.getItem("flirtschat:hide-global-welcome")!=="1")}catch{}},[]);
   const openFilters=()=>{if(!isPremiumUser()){router.push("/premium");return}setFiltersOpen(value=>!value)};
