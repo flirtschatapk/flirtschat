@@ -1,4 +1,5 @@
 import {GalleryHorizontalEnd, Globe2, Heart, MessageCircle, Settings} from "lucide-react";
+import {NotificationBadge} from "@/components/notifications/notification-badge";
 
 type NavItem = "global" | "swipe" | "matches" | "chat" | "settings";
 const items: [NavItem, string, string, React.ReactNode][] = [
@@ -18,6 +19,6 @@ export function AppBottomNav({active}: {active: NavItem | "none"}) {
       aria-label={label}
       title={label}
       aria-current={active === id ? "page" : undefined}
-    ><span>{icon}</span></a>)}
+    ><span>{icon}{id==="chat"&&<NotificationBadge/>}</span></a>)}
   </nav>;
 }

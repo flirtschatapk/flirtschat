@@ -9,6 +9,7 @@ import {ProfileImage} from "@/components/profile-image";
 import {useCurrentProfile} from "@/components/profile/current-profile-provider";
 import {HorizontalTabList} from "@/components/ui/horizontal-tab-list";
 import {isPremiumUser} from "@/lib/discover-entitlements";
+import {NotificationBadge} from "@/components/notifications/notification-badge";
 import type {CurrentProfile} from "@/lib/profile-types";
 import {getProfileCompletion} from "@/lib/profile-completion";
 import {dismissProfileBanner} from "@/lib/profile-service";
@@ -32,7 +33,7 @@ export function DashboardShell() {
     <div className="global-page-shell dashboard-container">
       <header className="global-page-header dashboard-top-header">
         <div className="dashboard-header-start"><a className="global-page-brand global-auth-brand flirtschat-wordmark" href="/dashboard" aria-label="Flirtschat dashboard"><strong>FLIRTSCHAT</strong></a></div>
-        <div className="dashboard-header-actions"><a className="dashboard-premium-action dashboard-metallic-action" href="/premium" aria-label="Upgrade to Premium"><Crown/></a><a className="dashboard-icon-button dashboard-metallic-action dashboard-notification-action" href="/notifications" aria-label="Notifications"><Bell/><i/></a><a className="dashboard-profile-avatar dashboard-profile-photo" href="/profile" aria-label="Open profile"><ProfileImage src={profile?.primaryPhotoUrl||null} alt={profile?.displayName||"Your profile"}/></a></div>
+        <div className="dashboard-header-actions"><a className="dashboard-premium-action dashboard-metallic-action" href="/premium" aria-label="Upgrade to Premium"><Crown/></a><a className="dashboard-icon-button dashboard-metallic-action dashboard-notification-action" href="/notifications" aria-label="Notifications"><Bell/><NotificationBadge/></a><a className="dashboard-profile-avatar dashboard-profile-photo" href="/profile" aria-label="Open profile"><ProfileImage src={profile?.primaryPhotoUrl||null} alt={profile?.displayName||"Your profile"}/></a></div>
       </header>
 
       <ProfileCompletionBanner profile={profile}/>

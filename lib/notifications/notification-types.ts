@@ -1,4 +1,4 @@
-export type NotificationType="likes"|"messages"|"gift"|"visitor"|"match"|"system"|"security"|"premium"|"mentions";
+export type NotificationType="likes"|"super_like"|"messages"|"gift"|"visitor"|"match"|"system"|"security"|"premium"|"mentions";
 export type NotificationFilter="all"|"likes"|"messages"|"system"|"mentions";
 
 export type FlirtschatNotification={
@@ -9,6 +9,9 @@ export type FlirtschatNotification={
   time:string;
   read:boolean;
   href:string;
+  actorId?:string|null;
+  referenceId?:string|null;
+  actorName?:string|null;
   avatarUrl?:string|null;
   avatarPosition?:string;
   previewPosition?:string;
