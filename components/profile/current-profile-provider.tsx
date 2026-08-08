@@ -32,7 +32,7 @@ export function CurrentProfileProvider({children}:{children:React.ReactNode}){
       return value;
     }catch(reason){
       const signedOut=reason instanceof ProfileRequestError&&reason.status===401;
-      if(mounted.current){setProfile(null);setUnauthorized(signedOut);setError(signedOut?null:"We couldn't load your profile.")}
+      if(mounted.current){setProfile(null);setUnauthorized(false);setError(signedOut?"We couldn't confirm your profile session.":"We couldn't load your profile.")}
       return null;
     }finally{if(mounted.current)setLoading(false)}
   },[]);
@@ -44,14 +44,17 @@ export function CurrentProfileProvider({children}:{children:React.ReactNode}){
     void supabase.auth.getUser().then(({data,error:authError})=>{
       if(!mounted.current)return;
       trace("auth state",{source:"getUser",hasUser:Boolean(data.user),error:authError?.code??null});
+      trace("current user",{hasUser:Boolean(data.user)});
       if(authError)return;
       if(data.user){setUser(data.user);setAuthStatus("authenticated");void refresh()}
       else if(authRestored.current){trace("redirect to login reason",{reason:"confirmed_unauthenticated"});setAuthStatus("unauthenticated");setUnauthorized(true);setLoading(false)}
     });
     const {data:{subscription}}=supabase.auth.onAuthStateChange((event,nextSession)=>{
       trace("auth state",{source:"onAuthStateChange",event,hasSession:Boolean(nextSession)});
+      trace("current session",{hasSession:Boolean(nextSession)});
       if(event==="INITIAL_SESSION")authRestored.current=true;
       if(event==="SIGNED_OUT"){
+        trace("SIGNED_OUT event");
         trace("redirect to login reason",{reason:"confirmed_signed_out"});
         setAuthStatus("unauthenticated");setUser(null);setProfile(null);setUnauthorized(true);setLoading(false);return;
       }

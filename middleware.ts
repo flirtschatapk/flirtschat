@@ -14,6 +14,7 @@ export async function middleware(request:NextRequest){
   let response=NextResponse.next({request});
   const supabase=createServerClient(url,key,{cookies:{getAll:()=>request.cookies.getAll(),setAll(values){values.forEach(({name,value})=>request.cookies.set(name,value));response=NextResponse.next({request});values.forEach(({name,value,options})=>response.cookies.set(name,value,options))}}});
   const{data:{user}}=await supabase.auth.getUser();
+  if(process.env.NODE_ENV==="development")console.info("[AuthTrace] middleware decision",{pathname,authenticated:Boolean(user)});
   if(matches(pathname,"/admin")&&pathname!=="/admin/login"){
     if(!user)return NextResponse.redirect(new URL("/admin/login",request.url));
     const role=user.app_metadata?.role;

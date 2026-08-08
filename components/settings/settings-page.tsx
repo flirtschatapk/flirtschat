@@ -65,7 +65,7 @@ export function SettingsPage(){
   const [profile,setProfile]=useState<CurrentProfile|null>(null);
   const [activeSection,setActiveSection]=useState("account");
 
-  const backToDashboard=()=>router.push("/dashboard");
+  const backToDashboard=()=>{if(process.env.NODE_ENV==="development")console.info("[AuthTrace] click back-to-dashboard");router.push("/dashboard")};
 
   useEffect(()=>{
     getCurrentProfile().then(value=>{setProfile(value);setPremium(value.premium)}).catch(()=>setFeatureNotice("We couldn't load your profile."));
