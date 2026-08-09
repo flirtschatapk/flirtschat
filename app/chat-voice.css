@@ -1,0 +1,9 @@
+.fc-voice-message{min-width:210px;display:flex;align-items:center;gap:8px}
+.fc-voice-message audio{display:none}
+.fc-voice-message button{width:29px;height:29px;display:grid;place-items:center;flex:none;border:0;border-radius:50%;background:#fff;color:#802bd7}
+.fc-voice-message button:disabled{opacity:.45;cursor:not-allowed}
+.fc-voice-message button svg{width:14px}
+.fc-voice-message .voice-seek{width:118px;height:4px;accent-color:#d15dff;cursor:pointer}
+.fc-voice-message .voice-seek:disabled{opacity:.35;cursor:not-allowed}
+.fc-voice-message>span{min-width:58px;font-size:8px;white-space:nowrap}
+@media(prefers-reduced-motion:reduce){.fc-voice-message .voice-seek{transition:none}}
