@@ -23,6 +23,7 @@ export async function GET(request:Request){
   if(membershipError||!membership)return NextResponse.json({error:{code:"MEDIA_FORBIDDEN",message:"Media unavailable"}},{status:403});
   try{
     const url=await getSignedUrl(getR2Client(),new GetObjectCommand({Bucket:getPrivateBucket(),Key:key}),{expiresIn:120});
+    if(new URL(request.url).searchParams.get("format")==="json")return NextResponse.json({url,expiresIn:120});
     return NextResponse.redirect(url,307);
   }catch(error){console.error("Voice media signing failed",{name:error instanceof Error?error.name:"UnknownError"});return NextResponse.json({error:{code:"MEDIA_UNAVAILABLE",message:"Media unavailable"}},{status:503})}
 }
