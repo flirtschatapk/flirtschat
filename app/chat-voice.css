@@ -6,4 +6,5 @@
 .fc-voice-message .voice-seek{width:118px;height:4px;accent-color:#d15dff;cursor:pointer}
 .fc-voice-message .voice-seek:disabled{opacity:.35;cursor:not-allowed}
 .fc-voice-message>span{min-width:58px;font-size:8px;white-space:nowrap}
+.fc-chat-voice-error{width:100%;padding:7px 10px;border:1px solid rgba(255,120,150,.28);border-radius:10px;background:rgba(60,15,30,.72);color:#ffd7e0;font-size:12px;line-height:1.35}
 @media(prefers-reduced-motion:reduce){.fc-voice-message .voice-seek{transition:none}}
