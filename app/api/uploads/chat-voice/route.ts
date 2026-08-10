@@ -21,7 +21,10 @@ export async function POST(request:Request){
   if(membershipError||!membership)return NextResponse.json({error:{code:"NOT_CONVERSATION_MEMBER",message:"Conversation unavailable"}},{status:403});
   const objectKey=`chat-voice/${body.conversationId}/${user.id}/${crypto.randomUUID()}.${extension(body.contentType)}`;
   try{
-    const command=new PutObjectCommand({Bucket:getPrivateBucket(),Key:objectKey,ContentType:body.contentType,ContentLength:size});
+    // The browser cannot reliably set an exact Content-Length header for a
+    // cross-origin presigned PUT. Keep the size validation above, but sign
+    // only the header the browser can send consistently.
+    const command=new PutObjectCommand({Bucket:getPrivateBucket(),Key:objectKey,ContentType:body.contentType});
     const uploadUrl=await getSignedUrl(getR2Client(),command,{expiresIn:300});
     return NextResponse.json({uploadUrl,objectKey,expiresIn:300});
   }catch(error){console.error("Voice upload signing failed",{name:error instanceof Error?error.name:"UnknownError"});return NextResponse.json({error:{code:"UPLOAD_SIGNING_FAILED",message:"Voice upload unavailable"}},{status:503})}
