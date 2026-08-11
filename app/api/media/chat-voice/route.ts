@@ -13,14 +13,16 @@ export async function GET(request:Request){
   const match=key.match(keyPattern);
   if(!match)return NextResponse.json({error:{code:"INVALID_MEDIA_KEY",message:"Media unavailable"}},{status:400});
   const[,conversationIdFromKey,senderIdFromKey]=match;
-  const{data:message,error:messageError}=await supabase.from("fc_messages").select("id,conversation_id,sender_id,kind,media_path,media_mime_type,media_size_bytes,media_duration_seconds").eq("media_path",key).maybeSingle();
+  const[{data:message,error:messageError},{data:keyMembership,error:keyMembershipError}]=await Promise.all([
+    supabase.from("fc_messages").select("id,conversation_id,sender_id,kind,media_path,media_mime_type,media_size_bytes,media_duration_seconds").eq("media_path",key).maybeSingle(),
+    supabase.from("fc_conversation_members").select("conversation_id").eq("conversation_id",conversationIdFromKey).eq("user_id",user.id).maybeSingle(),
+  ]);
   if(messageError||!message)return NextResponse.json({error:{code:"MEDIA_NOT_FOUND",message:"Media unavailable"}},{status:404});
   if(message.kind!=="voice"||message.media_path!==key||message.conversation_id!==conversationIdFromKey||message.sender_id!==senderIdFromKey)return NextResponse.json({error:{code:"MEDIA_NOT_FOUND",message:"Media unavailable"}},{status:404});
   const webmMime=message.media_mime_type==="audio/webm"||message.media_mime_type==="audio/webm;codecs=opus";
   const oggMime=message.media_mime_type==="audio/ogg"||message.media_mime_type==="audio/ogg;codecs=opus";
   if((key.endsWith(".webm")&&!webmMime)||(key.endsWith(".ogg")&&!oggMime)||!Number.isInteger(message.media_size_bytes)||!message.media_size_bytes||message.media_size_bytes>10*1024*1024||!Number.isInteger(message.media_duration_seconds)||!message.media_duration_seconds||message.media_duration_seconds>300)return NextResponse.json({error:{code:"MEDIA_NOT_FOUND",message:"Media unavailable"}},{status:404});
-  const{data:membership,error:membershipError}=await supabase.from("fc_conversation_members").select("conversation_id").eq("conversation_id",message.conversation_id).eq("user_id",user.id).maybeSingle();
-  if(membershipError||!membership)return NextResponse.json({error:{code:"MEDIA_FORBIDDEN",message:"Media unavailable"}},{status:403});
+  if(keyMembershipError||!keyMembership)return NextResponse.json({error:{code:"MEDIA_FORBIDDEN",message:"Media unavailable"}},{status:403});
   try{
     const url=await getSignedUrl(getR2Client(),new GetObjectCommand({Bucket:getPrivateBucket(),Key:key}),{expiresIn:120});
     if(new URL(request.url).searchParams.get("format")==="json")return NextResponse.json({url,expiresIn:120});

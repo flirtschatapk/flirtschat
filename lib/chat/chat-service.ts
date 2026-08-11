@@ -38,26 +38,23 @@ export async function getConversations(): Promise<Conversation[]> {
   if (error) throw error;
   const ids = (mine ?? []).map(row => row.conversation_id);
   if (!ids.length) return [];
-  const [conversationResult, memberResult, messageResult] = await Promise.all([
+  const [conversationResult, memberResult, messageResult, profileResult] = await Promise.all([
     supabase.from("fc_conversations").select("id,updated_at").in("id", ids).order("updated_at", { ascending: false }),
     supabase.from("fc_conversation_members").select("conversation_id,user_id,last_read_at").in("conversation_id", ids).neq("user_id", user.id),
-    supabase.from("fc_messages").select("id,conversation_id,sender_id,body,kind,media_path,media_mime_type,media_size_bytes,media_duration_seconds,reply_to,created_at").in("conversation_id", ids).is("deleted_at", null).order("created_at"),
+    supabase.from("fc_messages").select("id,conversation_id,sender_id,body,kind,media_path,media_mime_type,media_size_bytes,media_duration_seconds,reply_to,created_at").in("conversation_id", ids).is("deleted_at", null).order("created_at", { ascending: false }).limit(Math.max(50, ids.length * 50)),
+    supabase.rpc("fc_my_conversation_profiles"),
   ]);
   if (conversationResult.error) throw conversationResult.error;
   if (memberResult.error) throw memberResult.error;
   if (messageResult.error) throw messageResult.error;
   const others = (memberResult.data ?? []) as OtherMember[];
-  const otherIds = [...new Set(others.map(row => row.user_id))];
-  const profileResult = otherIds.length
-    ? await supabase.rpc("fc_my_conversation_profiles")
-    : { data: [] as Profile[], error: null };
   if (profileResult.error) throw profileResult.error;
 
   return (conversationResult.data ?? []).map(conversation => {
     const other = others.find(row => row.conversation_id === conversation.id);
     const profile = ((profileResult.data ?? []) as Profile[]).find(row => row.id === other?.user_id);
     const ownReadAt = (mine as OwnMember[]).find(row => row.conversation_id === conversation.id)?.last_read_at;
-    const list = (messageResult.data ?? []).filter(row => row.conversation_id === conversation.id);
+    const list = (messageResult.data ?? []).filter(row => row.conversation_id === conversation.id).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     const last = list.at(-1);
     return {
       id: conversation.id,
@@ -84,6 +81,19 @@ export async function getConversations(): Promise<Conversation[]> {
 }
 
 export function saveConversations(_items: Conversation[]) { void _items; }
+
+export async function getUnreadChatCount(): Promise<number> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return 0;
+  const { data: memberships, error: membershipError } = await supabase.from("fc_conversation_members").select("conversation_id,last_read_at").eq("user_id", user.id);
+  if (membershipError || !memberships?.length) return 0;
+  const ids = memberships.map(row => row.conversation_id);
+  const { data: messages, error } = await supabase.from("fc_messages").select("conversation_id,sender_id,created_at").in("conversation_id", ids).is("deleted_at", null);
+  if (error) throw error;
+  const reads = new Map(memberships.map(row => [row.conversation_id, row.last_read_at]));
+  return (messages ?? []).filter(row => row.sender_id !== user.id && (!reads.get(row.conversation_id) || new Date(row.created_at) > new Date(reads.get(row.conversation_id)!))).length;
+}
 
 export async function sendMessage(conversation: Conversation, message: ChatMessage) {
   const supabase = createClient();
