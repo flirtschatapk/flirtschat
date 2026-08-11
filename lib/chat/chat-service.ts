@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { canonicalVoiceMime } from "@/lib/chat/voice-media";
 import type { ChatMessage, Conversation, MessageStatus } from "./chat-types";
 
 type OwnMember = { conversation_id: string; last_read_at: string | null };
@@ -89,18 +90,20 @@ export async function sendMessage(conversation: Conversation, message: ChatMessa
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ...message, status: "failed" as const };
   if (message.type === "voice") {
+    const canonicalMime = canonicalVoiceMime(message.mediaMimeType);
     const keyPrefix = `chat-voice/${conversation.id}/${user.id}/`;
     const validKey = message.mediaKey?.startsWith(keyPrefix) && /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.(webm|ogg)$/i.test(message.mediaKey.slice(keyPrefix.length));
-    const validMime = ["audio/webm", "audio/webm;codecs=opus", "audio/ogg", "audio/ogg;codecs=opus"].includes(message.mediaMimeType ?? "");
-    const extensionMatchesMime = (message.mediaKey?.endsWith(".webm") && (message.mediaMimeType === "audio/webm" || message.mediaMimeType === "audio/webm;codecs=opus")) || (message.mediaKey?.endsWith(".ogg") && (message.mediaMimeType === "audio/ogg" || message.mediaMimeType === "audio/ogg;codecs=opus"));
+    const validMime = Boolean(canonicalMime);
+    const extensionMatchesMime = (message.mediaKey?.endsWith(".webm") && canonicalMime?.startsWith("audio/webm")) || (message.mediaKey?.endsWith(".ogg") && canonicalMime?.startsWith("audio/ogg"));
     if (!validKey || !validMime || !extensionMatchesMime || !Number.isInteger(message.mediaSizeBytes) || !message.mediaSizeBytes || message.mediaSizeBytes > 10 * 1024 * 1024 || !Number.isInteger(message.duration) || !message.duration || message.duration > 300) return { ...message, status: "failed" as const };
   }
-  const { data, error } = await supabase.from("fc_messages").insert({ conversation_id: conversation.id, sender_id: user.id, body: message.type === "voice" ? "Sent you a voice message" : message.text, kind: message.type === "photo" ? "image" : message.type === "voice" ? "voice" : "text", media_path: message.mediaKey || (message.type === "voice" ? null : message.mediaUrl) || null, media_mime_type: message.mediaMimeType || null, media_size_bytes: message.mediaSizeBytes || null, media_duration_seconds: message.duration || null, reply_to: message.replyTo || null }).select("id,created_at,media_path,media_mime_type,media_size_bytes,media_duration_seconds").single();
+  const { data, error } = await supabase.from("fc_messages").insert({ conversation_id: conversation.id, sender_id: user.id, body: message.type === "voice" ? "Sent you a voice message" : message.text, kind: message.type === "photo" ? "image" : message.type === "voice" ? "voice" : "text", media_path: message.mediaKey || (message.type === "voice" ? null : message.mediaUrl) || null, media_mime_type: message.type === "voice" ? canonicalVoiceMime(message.mediaMimeType) : message.mediaMimeType || null, media_size_bytes: message.mediaSizeBytes || null, media_duration_seconds: message.duration || null, reply_to: message.replyTo || null }).select("id,created_at,media_path,media_mime_type,media_size_bytes,media_duration_seconds").single();
   if (error) {
     if (message.type === "voice" && process.env.NODE_ENV === "development") {
-      console.error("[VoiceTrace] voice-message-insert", {
+      console.error("[VoiceSend] message-insert-failed", {
         code: error.code,
         message: error.message,
+        conversationId: conversation.id,
       });
     }
     return { ...message, status: "failed" as const };
