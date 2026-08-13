@@ -1,4 +1,5 @@
 .fc-voice-message,
+.fc-voice-review,
 .fc-recording {
   position: relative;
   display: flex;
@@ -198,6 +199,7 @@
 
 @media (min-width: 521px) {
   .fc-voice-message,
+  .fc-voice-review,
   .fc-recording {
     max-width: 390px;
   }
