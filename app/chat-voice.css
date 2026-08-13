@@ -254,3 +254,52 @@
     transition: none;
   }
 }
+
+/* Keep legacy chat stylesheet selectors from reintroducing an older voice UI. */
+.fc-message .fc-voice-message {
+  min-width: 0;
+  min-height: 68px;
+  width: min(100%, 390px);
+  padding: 6px 12px 6px 8px;
+  gap: 12px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 20px;
+  background: linear-gradient(100deg, #18121f 0%, #110d19 58%, #0d0a13 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035), 0 5px 12px rgba(0, 0, 0, .32);
+}
+
+.fc-message .fc-voice-message > button,
+.fc-recording .fc-voice-main-control {
+  width: 56px;
+  height: 56px;
+  min-width: 0;
+  padding: 0;
+  flex: 0 0 56px;
+  border: 0;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #fff 0%, #f4eef8 52%, #d8c9df 100%);
+  color: #7f2bd1;
+  box-shadow: 0 5px 0 rgba(68, 47, 80, .62), 0 3px 9px rgba(0, 0, 0, .34);
+}
+
+.fc-message .fc-voice-message > button svg,
+.fc-recording .fc-voice-main-control svg {
+  width: 23px;
+  height: 23px;
+}
+
+@media (max-width: 520px) {
+  .fc-message .fc-voice-message {
+    width: 100%;
+    gap: 8px;
+    padding-right: 8px;
+  }
+
+  .fc-message .fc-voice-message > button,
+  .fc-recording .fc-voice-main-control {
+    width: 52px;
+    height: 52px;
+    flex-basis: 52px;
+  }
+}
