@@ -2,13 +2,12 @@ import {createClient} from "@/lib/supabase/client";
 import {likeProfile} from "@/lib/discover-service";
 
 export type GlobalLikeState={likeCount:number;likedByMe:boolean};
-type SwipeRow={actor_id:string;target_id:string;action:"like"|"pass"|"super_like"};
+type LikeStateRow={target_id:string;like_count:number|string;liked_by_me:boolean};
 
 export async function loadGlobalLikeStates(targetIds:string[]):Promise<Record<string,GlobalLikeState>>{
   const states:Record<string,GlobalLikeState>={};targetIds.forEach(id=>{states[id]={likeCount:0,likedByMe:false}});if(!targetIds.length)return states;
-  const supabase=createClient(),{data:{user},error:userError}=await supabase.auth.getUser();if(userError||!user)throw userError??new Error("Authentication required");
-  const{data,error}=await supabase.from("fc_swipes").select("actor_id,target_id,action").in("target_id",targetIds).in("action",["like","super_like"]);if(error)throw error;
-  for(const row of (data??[]) as SwipeRow[]){const state=states[row.target_id];if(!state)continue;state.likeCount+=1;if(row.actor_id===user.id)state.likedByMe=true}
+  const supabase=createClient(),{data,error}=await supabase.rpc("fc_global_like_states",{target_ids:targetIds});if(error)throw error;
+  for(const row of (data??[]) as LikeStateRow[]){const state=states[row.target_id];if(!state)continue;state.likeCount=Math.max(0,Number(row.like_count)||0);state.likedByMe=Boolean(row.liked_by_me)}
   return states;
 }
 
