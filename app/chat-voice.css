@@ -121,6 +121,27 @@
   white-space: nowrap;
 }
 
+.fc-voice-review-wave {
+  order: 3;
+}
+
+.fc-voice-wave {
+  order: 2;
+}
+
+.fc-voice-message > span {
+  order: 3;
+}
+
+.fc-voice-review > strong,
+.fc-voice-review .fc-voice-duration {
+  order: 2;
+}
+
+.fc-recording .fc-voice-duration {
+  order: 3;
+}
+
 .fc-voice-message > span small {
   display: block;
   margin-top: 3px;
@@ -155,6 +176,27 @@
   width: 56px;
   height: 56px;
   flex-basis: 56px;
+}
+
+.fc-voice-message > button,
+.fc-voice-main-control,
+.fc-voice-review-play {
+  cursor: pointer;
+  transition: transform .16s ease, filter .16s ease, box-shadow .16s ease;
+}
+
+.fc-voice-message > button:hover,
+.fc-voice-main-control:hover,
+.fc-voice-review-play:hover {
+  filter: brightness(1.04);
+  box-shadow: inset 1px 1px 3px rgba(255,255,255,.74), 0 6px 0 rgba(68, 47, 80, .58), 0 5px 13px rgba(126, 61, 181, .22);
+}
+
+.fc-voice-message > button:active,
+.fc-voice-main-control:active,
+.fc-voice-review-play:active {
+  transform: translateY(2px);
+  box-shadow: inset 1px 2px 4px rgba(103, 72, 120, .28), 0 3px 0 rgba(68, 47, 80, .62), 0 2px 6px rgba(0,0,0,.28);
 }
 
 .fc-voice-review-send,
