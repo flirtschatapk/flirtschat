@@ -98,25 +98,34 @@ export async function getUnreadChatCount(): Promise<number> {
 export async function sendMessage(conversation: Conversation, message: ChatMessage) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { ...message, status: "failed" as const };
+  if (!user) return { ...message, status: "failed" as const, sendError: { stage: "message" as const, code: "UNAUTHENTICATED" } };
   if (message.type === "voice") {
     const canonicalMime = canonicalVoiceMime(message.mediaMimeType);
     const keyPrefix = `chat-voice/${conversation.id}/${user.id}/`;
     const validKey = message.mediaKey?.startsWith(keyPrefix) && /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.(webm|ogg)$/i.test(message.mediaKey.slice(keyPrefix.length));
     const validMime = Boolean(canonicalMime);
     const extensionMatchesMime = (message.mediaKey?.endsWith(".webm") && canonicalMime?.startsWith("audio/webm")) || (message.mediaKey?.endsWith(".ogg") && canonicalMime?.startsWith("audio/ogg"));
-    if (!validKey || !validMime || !extensionMatchesMime || !Number.isInteger(message.mediaSizeBytes) || !message.mediaSizeBytes || message.mediaSizeBytes > 10 * 1024 * 1024 || !Number.isInteger(message.duration) || !message.duration || message.duration > 300) return { ...message, status: "failed" as const };
+    if (!validKey || !validMime || !extensionMatchesMime || !Number.isInteger(message.mediaSizeBytes) || !message.mediaSizeBytes || message.mediaSizeBytes > 10 * 1024 * 1024 || !Number.isInteger(message.duration) || !message.duration || message.duration > 300) return { ...message, status: "failed" as const, sendError: { stage: "message" as const, code: "VOICE_METADATA_INVALID" } };
   }
   const { data, error } = await supabase.from("fc_messages").insert({ conversation_id: conversation.id, sender_id: user.id, body: message.type === "voice" ? "Sent you a voice message" : message.text, kind: message.type === "photo" ? "image" : message.type === "voice" ? "voice" : "text", media_path: message.mediaKey || (message.type === "voice" ? null : message.mediaUrl) || null, media_mime_type: message.type === "voice" ? canonicalVoiceMime(message.mediaMimeType) : message.mediaMimeType || null, media_size_bytes: message.mediaSizeBytes || null, media_duration_seconds: message.duration || null, reply_to: message.replyTo || null }).select("id,created_at,media_path,media_mime_type,media_size_bytes,media_duration_seconds").single();
   if (error) {
     if (message.type === "voice" && process.env.NODE_ENV === "development") {
-      console.error("[VoiceSend] message-insert-failed", {
+      console.error("[VoiceSendFailure]", {
+        stage: "message",
         code: error.code,
+        httpStatus: undefined,
+        blobSize: message.mediaSizeBytes,
+        blobMime: message.mediaMimeType,
         message: error.message,
+        details: error.details,
+        hint: error.hint,
         conversationId: conversation.id,
       });
     }
-    return { ...message, status: "failed" as const };
+    return { ...message, status: "failed" as const, sendError: { stage: "message" as const, code: error.code, message: error.message, details: error.details, hint: error.hint } };
   }
-  return { ...message, id: data.id, createdAt: new Date(data.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }), status: "sent" as const, mediaKey: data.media_path || message.mediaKey, mediaMimeType: data.media_mime_type || message.mediaMimeType, mediaSizeBytes: data.media_size_bytes || message.mediaSizeBytes, duration: data.media_duration_seconds || message.duration };
+  const secureMediaUrl = message.type === "voice" && data.media_path
+    ? `/api/media/chat-voice?key=${encodeURIComponent(data.media_path)}`
+    : message.mediaUrl;
+  return { ...message, id: data.id, createdAt: new Date(data.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }), status: "sent" as const, mediaUrl: secureMediaUrl, mediaKey: data.media_path || message.mediaKey, mediaMimeType: data.media_mime_type || message.mediaMimeType, mediaSizeBytes: data.media_size_bytes || message.mediaSizeBytes, duration: data.media_duration_seconds || message.duration };
 }
