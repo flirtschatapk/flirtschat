@@ -206,6 +206,9 @@
   gap: 0 14px;
   padding: 8px 20px 8px 12px;
   min-height: 76px;
+  flex: 0 1 390px;
+  max-width: 390px;
+  align-self: center;
   border-color: rgba(151, 79, 220, .54);
   border-radius: 40px;
   background: linear-gradient(135deg, #19132b 0%, #100c1d 58%, #0b0814 100%);
@@ -420,6 +423,8 @@
     gap: 0 8px;
     padding: 7px 10px 7px 8px;
     min-height: 68px;
+    flex-basis: 100%;
+    max-width: 100%;
   }
 
   .fc-recording .fc-voice-main-control {

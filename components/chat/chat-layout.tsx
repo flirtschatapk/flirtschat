@@ -124,8 +124,8 @@ function LiveVoiceWaveform({stream,active}:{stream:MediaStream|null;active:boole
   if(!active||!stream)return;
   const AudioContextClass=window.AudioContext||((window as typeof window & {webkitAudioContext?:typeof AudioContext}).webkitAudioContext);
   if(!AudioContextClass)return;
-  const context=new AudioContextClass(),analyser=context.createAnalyser(),source=context.createMediaStreamSource(stream),data=new Uint8Array(analyser.fftSize),smoothHeights=Array.from({length:32},()=>25);
-  analyser.fftSize=64;source.connect(analyser);let frame=0;
+  const context=new AudioContextClass(),analyser=context.createAnalyser(),source=context.createMediaStreamSource(stream),smoothHeights=Array.from({length:32},()=>25);
+  analyser.fftSize=64;const data=new Uint8Array(analyser.fftSize);source.connect(analyser);let frame=0;
   const draw=()=>{analyser.getByteTimeDomainData(data);barsRef.current.forEach((bar,index)=>{if(!bar)return;const sample=data[Math.min(data.length-1,Math.floor(index*data.length/32))]??128;const measured=Math.max(18,Math.min(100,Math.abs(sample-128)*3.8));smoothHeights[index]=smoothHeights[index]*.65+measured*.35;bar.style.height=`${smoothHeights[index]}%`});frame=requestAnimationFrame(draw)};
   void context.resume();draw();
   const bars=barsRef.current;
