@@ -201,14 +201,15 @@
 
 .fc-recording {
   display: grid;
-  grid-template-columns: 56px 92px minmax(0, 1fr) auto;
+  grid-template-columns: 60px 126px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 0 12px;
-  padding: 7px 16px 7px 9px;
-  min-height: 72px;
-  border-color: rgba(151, 79, 220, .5);
+  gap: 0 14px;
+  padding: 8px 20px 8px 12px;
+  min-height: 76px;
+  border-color: rgba(151, 79, 220, .54);
+  border-radius: 40px;
   background: linear-gradient(135deg, #19132b 0%, #100c1d 58%, #0b0814 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05), inset 0 -10px 20px rgba(0, 0, 0, .28), 0 0 22px rgba(126, 70, 217, .12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), inset 0 -10px 20px rgba(0, 0, 0, .3), 0 0 22px rgba(126, 70, 217, .14);
 }
 
 .fc-recording-copy {
@@ -216,7 +217,7 @@
   flex-direction: column;
   justify-content: center;
   min-width: 0;
-  gap: 6px;
+  gap: 7px;
 }
 
 .fc-recording-label {
@@ -224,7 +225,7 @@
   align-items: center;
   gap: 8px;
   color: var(--voice-text);
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -238,12 +239,15 @@
 }
 
 .fc-recording .fc-voice-main-control {
-  box-shadow: inset 0 2px 5px rgba(255, 255, 255, .72), 0 0 0 5px rgba(154, 82, 232, .2), 0 0 0 9px rgba(154, 82, 232, .08), 0 5px 0 rgba(52, 28, 75, .72), 0 0 18px rgba(239, 74, 169, .2);
+  width: 60px;
+  height: 60px;
+  flex-basis: 60px;
+  box-shadow: inset 0 2px 5px rgba(255, 255, 255, .72), 0 0 0 6px rgba(154, 82, 232, .22), 0 0 0 10px rgba(154, 82, 232, .09), 0 5px 0 rgba(52, 28, 75, .72), 0 0 18px rgba(239, 74, 169, .24);
 }
 
 .fc-recording .fc-live-wave {
   grid-column: 3;
-  height: 50px;
+  height: 52px;
 }
 
 .fc-recording-max {
@@ -412,7 +416,17 @@
   }
 
   .fc-recording {
-    grid-template-columns: 52px 78px minmax(0, 1fr) auto;
+    grid-template-columns: 52px 82px minmax(0, 1fr) auto;
+    gap: 0 8px;
+    padding: 7px 10px 7px 8px;
+    min-height: 68px;
+  }
+
+  .fc-recording .fc-voice-main-control {
+    width: 52px;
+    height: 52px;
+    flex-basis: 52px;
+    box-shadow: inset 0 2px 4px rgba(255, 255, 255, .72), 0 0 0 5px rgba(154, 82, 232, .2), 0 0 0 8px rgba(154, 82, 232, .08), 0 4px 0 rgba(52, 28, 75, .72), 0 0 14px rgba(239, 74, 169, .2);
   }
 
   .fc-recording-label {
@@ -433,7 +447,7 @@
 
 @media (max-width: 370px) {
   .fc-recording {
-    grid-template-columns: 52px 68px minmax(0, 1fr) auto;
+    grid-template-columns: 52px 72px minmax(0, 1fr) auto;
     gap: 0 5px;
   }
 
