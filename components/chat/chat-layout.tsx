@@ -126,7 +126,7 @@ function LiveVoiceWaveform({stream,active}:{stream:MediaStream|null;active:boole
   if(!AudioContextClass)return;
   const context=new AudioContextClass(),analyser=context.createAnalyser(),source=context.createMediaStreamSource(stream),smoothHeights=Array.from({length:32},()=>25);
   analyser.fftSize=64;const data=new Uint8Array(analyser.fftSize);source.connect(analyser);let frame=0;
-  const draw=()=>{analyser.getByteTimeDomainData(data);barsRef.current.forEach((bar,index)=>{if(!bar)return;const sample=data[Math.min(data.length-1,Math.floor(index*data.length/32))]??128;const measured=Math.max(18,Math.min(100,Math.abs(sample-128)*3.8));smoothHeights[index]=smoothHeights[index]*.65+measured*.35;bar.style.height=`${smoothHeights[index]}%`});frame=requestAnimationFrame(draw)};
+  const draw=()=>{analyser.getByteTimeDomainData(data);barsRef.current.forEach((bar,index)=>{if(!bar)return;const sampleIndex=Math.round((index/31)*(data.length-1)),sample=data[sampleIndex]??128,baseline=16+(index%5)*2,measured=Math.max(baseline,Math.min(100,baseline+Math.abs(sample-128)*3.8));smoothHeights[index]=smoothHeights[index]*.65+measured*.35;bar.style.height=`${smoothHeights[index]}%`});frame=requestAnimationFrame(draw)};
   void context.resume();draw();
   const bars=barsRef.current;
   return()=>{cancelAnimationFrame(frame);source.disconnect();analyser.disconnect();void context.close();bars.forEach(bar=>{if(bar)bar.style.height="25%"})};
