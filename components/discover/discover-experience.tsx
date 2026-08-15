@@ -1,7 +1,7 @@
 "use client";
 
 import {LoaderCircle} from "lucide-react";
-import {useCallback, useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {ActionButtons, type DiscoverAction} from "./action-buttons";
 import {DiscoverEmptyState} from "./discover-empty-state";
 import {DiscoverFilter} from "./discover-filter";
@@ -18,8 +18,11 @@ import {defaultDiscoverFilters, type DiscoverFilters, type DiscoverProfile, type
 import {DISCOVER_PREFERENCES_EVENT,DISCOVER_PREFERENCES_KEY,loadDiscoverPreferences,saveDiscoverPreferences} from "@/lib/discover-preferences";
 import {createClient} from "@/lib/supabase/client";
 import {subscribeToPublicProfileUpdates} from "@/lib/public-profile-realtime";
+import {useCurrentProfile} from "@/components/profile/current-profile-provider";
+import {getUserCache,setUserCache} from "@/lib/app-cache";
 
 export function DiscoverExperience() {
+  const{user}=useCurrentProfile();
   const lock = useRef(false);
   const profilesRef=useRef<DiscoverProfile[]>([]);
   const [ready, setReady] = useState(false);
@@ -39,20 +42,27 @@ export function DiscoverExperience() {
   const [actionState,setActionState]=useState<DiscoveryActionState|null>(null);
   const [now,setNow]=useState(()=>Date.now());
   const active = profiles[index];
+  const cacheScope=useMemo(()=>`discovery:${tab}:${JSON.stringify(filters)}`,[filters,tab]);
   const syncActionState=useCallback(async()=>{try{const state=await getDiscoveryActionState();setActionState(state);setPremium(state.premium);setQuota({date:new Date().toLocaleDateString("en-CA"),rewind:state.rewindsRemaining,superlike:state.superLikesRemaining})}catch{setLimitNotice("We couldn't load your swipe limits. Try again.")}},[]);
 
   const load = useCallback(async () => {
     setBusy(true);
     setError(false);
+    const cached=user?.id?getUserCache<{profiles:DiscoverProfile[];index:number}>(user.id,cacheScope,60000):undefined;
+    if(cached){setProfiles(cached.profiles);setIndex(Math.min(cached.index,Math.max(0,cached.profiles.length-1)));setBusy(false)}
     try {
-      setProfiles(await getProfiles(tab, filters));
+      const next=await getProfiles(tab, filters);
+      setUserCache(user?.id,cacheScope,{profiles:next,index:0});
+      setProfiles(next);
       setIndex(0);
     } catch {
       setError(true);
     } finally {
       setBusy(false);
     }
-  }, [tab, filters]);
+  }, [cacheScope,filters,tab,user?.id]);
+
+  useEffect(()=>{if(!user?.id)return;const cached=getUserCache<{profiles:DiscoverProfile[];index:number}>(user.id,cacheScope,60000);if(cached){setProfiles(cached.profiles);setIndex(Math.min(cached.index,Math.max(0,cached.profiles.length-1)));setBusy(false)}},[cacheScope,user?.id]);
 
   useEffect(() => {
     setFilters(loadDiscoverPreferences());
@@ -61,6 +71,7 @@ export function DiscoverExperience() {
   }, [syncActionState]);
 
   useEffect(()=>{profilesRef.current=profiles},[profiles]);
+  useEffect(()=>{if(user?.id&&profiles.length)setUserCache(user.id,cacheScope,{profiles,index})},[cacheScope,index,profiles,user?.id]);
 
   useEffect(() => {
     if (ready) void load();

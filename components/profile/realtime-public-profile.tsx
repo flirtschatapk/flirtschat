@@ -6,4 +6,4 @@ import {useRouter} from "next/navigation";
 import {useEffect} from "react";
 import {subscribeToPublicProfileUpdates} from "@/lib/public-profile-realtime";
 
-export function RealtimePublicProfile({profile,lastSeen}:{profile:GlobalProfile;lastSeen:string|null}){const presence=usePresence(profile.id,lastSeen),router=useRouter();useEffect(()=>subscribeToPublicProfileUpdates(profileId=>{if(profileId===profile.id)router.refresh()}),[profile.id,router]);return <PublicProfile profile={{...profile,online:presence.online}}/>}
+export function RealtimePublicProfile({profile,lastSeen,onProfileChange}:{profile:GlobalProfile;lastSeen:string|null;onProfileChange?:()=>void}){const presence=usePresence(profile.id,lastSeen),router=useRouter();useEffect(()=>subscribeToPublicProfileUpdates(profileId=>{if(profileId!==profile.id)return;if(onProfileChange){onProfileChange();return}router.refresh()}),[onProfileChange,profile.id,router]);return <PublicProfile profile={{...profile,online:presence.online}}/>}

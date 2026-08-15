@@ -11,7 +11,7 @@ import {NotificationTabs} from "./notification-tabs";
 import {NotificationList} from "./notification-list";
 
 export function NotificationsExperience(){
-  const router=useRouter(),{items,unreadCount,refresh,markRead,markAllRead,remove}=useNotifications(),[ready,setReady]=useState(false),[error,setError]=useState(false),[filter,setFilter]=useState<NotificationFilter>("all");
+  const router=useRouter(),{items,unreadCount,refresh,markRead,markAllRead,remove}=useNotifications(),[ready,setReady]=useState(items.length>0),[error,setError]=useState(false),[filter,setFilter]=useState<NotificationFilter>("all");
   useEffect(()=>{void refresh().catch(()=>setError(true)).finally(()=>setReady(true))},[refresh]);
   const visible=useMemo(()=>filterNotifications(items,filter),[filter,items]),unread=(value:NotificationFilter)=>filterNotifications(items,value).filter(item=>!item.read).length;
   const open=async(item:FlirtschatNotification)=>{if(!item.read)await markRead(item.id);router.push(item.href)};

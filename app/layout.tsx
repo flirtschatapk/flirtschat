@@ -5,6 +5,7 @@ import {SplashScreen} from "@/components/splash-screen";
 import {CurrentProfileProvider} from "@/components/profile/current-profile-provider";
 import {PresenceProvider} from "@/components/presence/presence-provider";
 import {AuthSessionManager} from "@/components/auth/auth-session-manager";
+import {AuthenticatedNavigationWarmup} from "@/components/auth/authenticated-navigation-warmup";
 import {NotificationProvider} from "@/components/notifications/notification-provider";
 import {ChatUnreadProvider} from "@/components/chat/chat-unread-provider";
 import "./globals.css";
@@ -45,5 +46,5 @@ export const metadata:Metadata={
 };
 
 export default function RootLayout({children}:{children:React.ReactNode}){
-  return <html lang="en" data-flirtschat-theme="dark"><body><CurrentProfileProvider><NotificationProvider><ChatUnreadProvider><PresenceProvider><AuthSessionManager/><LanguageInitializer/><SplashScreen/>{children}<CookieConsent/></PresenceProvider></ChatUnreadProvider></NotificationProvider></CurrentProfileProvider></body></html>;
+  return <html lang="en" data-flirtschat-theme="dark"><body><CurrentProfileProvider><NotificationProvider><ChatUnreadProvider><PresenceProvider><AuthSessionManager/><AuthenticatedNavigationWarmup/><LanguageInitializer/><SplashScreen/>{children}<CookieConsent/></PresenceProvider></ChatUnreadProvider></NotificationProvider></CurrentProfileProvider></body></html>;
 }
