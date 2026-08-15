@@ -26,11 +26,25 @@
 
 .fc-voice-message {
   display: grid;
-  grid-template-columns: 56px minmax(0, 1fr) auto;
+  grid-template-columns: 52px minmax(0, 1fr) 48px;
   grid-template-rows: 42px 18px;
   align-items: center;
   gap: 0 12px;
-  padding: 7px 16px 7px 9px;
+  width: min(100%, 390px);
+  min-height: 82px;
+  padding: 9px 14px 8px 10px;
+  border-radius: 27px 27px 27px 10px;
+  background: linear-gradient(135deg, var(--voice-bg-start) 0%, #100c1d 58%, var(--voice-bg-end) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .055), inset 0 -9px 18px rgba(0, 0, 0, .28), 0 8px 20px rgba(3, 1, 12, .38);
+}
+
+.fc-message.mine .fc-bubble.voice,
+.fc-message.theirs .fc-bubble.voice {
+  max-width: 390px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .fc-voice-review-shell {
@@ -60,16 +74,16 @@
   position: relative;
   display: grid;
   place-items: center;
-  width: 56px;
-  height: 56px;
+  width: 50px;
+  height: 50px;
   min-width: 0;
-  flex: 0 0 56px;
+  flex: 0 0 50px;
   padding: 0;
   border: 2px solid var(--voice-purple);
   border-radius: 50%;
   background: radial-gradient(circle at 35% 28%, #382250, #191128 58%, #0d0916);
   color: #fff;
-  box-shadow: inset 0 2px 4px rgba(255, 255, 255, .08), 0 0 0 5px rgba(154, 82, 232, .13), 0 5px 0 rgba(5, 2, 13, .7), 0 0 14px rgba(154, 82, 232, .2);
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, .08), 0 0 0 4px rgba(154, 82, 232, .15), 0 4px 0 rgba(5, 2, 13, .65), 0 0 12px rgba(154, 82, 232, .18);
 }
 
 .fc-voice-main-control {
@@ -77,6 +91,13 @@
   background: radial-gradient(circle at 34% 25%, #fff, #f3edf8 62%, #d2c3dc);
   color: #ed3262;
   box-shadow: inset 0 2px 4px rgba(255, 255, 255, .7), 0 0 0 5px rgba(154, 82, 232, .18), 0 5px 0 rgba(52, 28, 75, .7), 0 0 16px rgba(154, 82, 232, .25);
+}
+
+.fc-voice-review-play {
+  width: 56px;
+  height: 56px;
+  flex-basis: 56px;
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, .08), 0 0 0 5px rgba(154, 82, 232, .13), 0 5px 0 rgba(5, 2, 13, .7), 0 0 14px rgba(154, 82, 232, .2);
 }
 
 .fc-voice-message > button:disabled,
@@ -165,16 +186,11 @@
 .fc-voice-wave {
   grid-column: 2;
   grid-row: 1;
+  height: 42px;
 }
 
 .fc-voice-message-time {
-  grid-column: 3;
-  grid-row: 1;
-  align-self: start;
-  padding-top: 8px;
-  color: var(--voice-secondary) !important;
-  font-size: 12px !important;
-  font-weight: 700 !important;
+  display: none;
 }
 
 .fc-voice-message-time small {
@@ -194,6 +210,34 @@
   font-size: 11px;
   font-variant-numeric: tabular-nums;
   line-height: 1;
+}
+
+.fc-voice-progress-meta span:last-child {
+  color: var(--voice-text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.fc-message:has(.fc-voice-message) .fc-message-meta {
+  margin-top: 7px;
+  color: var(--voice-secondary);
+  font-size: 10px;
+}
+
+.fc-message:has(.fc-voice-message) .fc-message-meta .opened-status {
+  color: #22e68a;
+  font-weight: 700;
+}
+
+.fc-message:has(.fc-voice-message) .fc-message-meta .waiting-status {
+  color: var(--voice-secondary);
+}
+
+.fc-message:has(.fc-voice-message) > .fc-message-hit > .profile-image {
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--voice-purple);
+  box-shadow: 0 0 10px rgba(239, 74, 169, .18);
 }
 
 .fc-voice-progress-meta span:first-child {
@@ -400,12 +444,27 @@
     padding-right: 10px;
   }
 
-  .fc-voice-message > button,
+  .fc-voice-message > button {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+  }
+
   .fc-voice-main-control,
   .fc-voice-review-play {
     width: 52px;
     height: 52px;
     flex-basis: 52px;
+  }
+
+  .fc-voice-message > button svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .fc-message:has(.fc-voice-message) > .fc-message-hit > .profile-image {
+    width: 40px;
+    height: 40px;
   }
 
   .fc-voice-review {
