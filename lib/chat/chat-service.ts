@@ -153,5 +153,5 @@ export async function sendMessage(conversation: Conversation, message: ChatMessa
   const secureMediaUrl = message.type === "voice" && data.media_path
     ? `/api/media/chat-voice?key=${encodeURIComponent(data.media_path)}`
     : message.mediaUrl;
-  return { ...message, id: data.id, createdAt: new Date(data.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }), status: "sent" as const, mediaUrl: secureMediaUrl, mediaKey: data.media_path || message.mediaKey, mediaMimeType: data.media_mime_type || message.mediaMimeType, mediaSizeBytes: data.media_size_bytes || message.mediaSizeBytes, duration: data.media_duration_seconds || message.duration };
+  return { ...message, id: data.id, createdAt: new Date(data.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }), createdAtIso: data.created_at, status: "sent" as const, mediaUrl: secureMediaUrl, mediaKey: data.media_path || message.mediaKey, mediaMimeType: data.media_mime_type || message.mediaMimeType, mediaSizeBytes: data.media_size_bytes || message.mediaSizeBytes, duration: data.media_duration_seconds || message.duration };
 }
