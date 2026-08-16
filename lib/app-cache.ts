@@ -12,6 +12,11 @@ export function getUserCache<T>(userId:string|undefined,scope:string,maxAgeMs?:n
   return entry.value;
 }
 
+export function getUserCacheStale<T>(userId:string|undefined,scope:string):T|undefined{
+  if(!userId)return undefined;
+  return (cache.get(userCacheKey(userId,scope)) as CacheEntry<T>|undefined)?.value;
+}
+
 export function setUserCache<T>(userId:string|undefined,scope:string,value:T){
   if(userId)cache.set(userCacheKey(userId,scope),{value,updatedAt:Date.now()});
   return value;
