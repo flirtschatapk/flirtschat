@@ -127,11 +127,20 @@ export async function sendMessage(conversation: Conversation, message: ChatMessa
   if (!user) return { ...message, status: "failed" as const, sendError: { stage: "message" as const, code: "UNAUTHENTICATED" } };
   if (message.type === "voice") {
     const canonicalMime = canonicalVoiceMime(message.mediaMimeType);
+    const baseMime = canonicalMime?.split(";", 1)[0] ?? "";
+    const durationSeconds = typeof message.duration === "number" && Number.isFinite(message.duration) ? Math.round(message.duration) : 0;
+    const mediaSizeBytes = message.mediaSizeBytes ?? 0;
     const keyPrefix = `chat-voice/${conversation.id}/${user.id}/`;
     const validKey = message.mediaKey?.startsWith(keyPrefix) && /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.(webm|ogg)$/i.test(message.mediaKey.slice(keyPrefix.length));
-    const validMime = Boolean(canonicalMime);
-    const extensionMatchesMime = (message.mediaKey?.endsWith(".webm") && canonicalMime?.startsWith("audio/webm")) || (message.mediaKey?.endsWith(".ogg") && canonicalMime?.startsWith("audio/ogg"));
-    if (!validKey || !validMime || !extensionMatchesMime || !Number.isInteger(message.mediaSizeBytes) || !message.mediaSizeBytes || message.mediaSizeBytes > 10 * 1024 * 1024 || !Number.isInteger(message.duration) || !message.duration || message.duration > 300) return { ...message, status: "failed" as const, sendError: { stage: "message" as const, code: "VOICE_METADATA_INVALID" } };
+    const validMime = baseMime === "audio/webm" || baseMime === "audio/ogg";
+    const extensionMatchesMime = (message.mediaKey?.endsWith(".webm") && baseMime === "audio/webm") || (message.mediaKey?.endsWith(".ogg") && baseMime === "audio/ogg");
+    const validSize = Number.isInteger(mediaSizeBytes) && mediaSizeBytes > 0 && mediaSizeBytes <= 10 * 1024 * 1024;
+    const validDuration = durationSeconds > 0 && durationSeconds <= 300;
+    if (!validKey || !validMime || !extensionMatchesMime || !validSize || !validDuration) {
+      console.error("[VoiceMetadataInvalid]", { conversationId: conversation.id, blobMime: message.mediaMimeType, canonicalMime, baseMime, mediaSizeBytes: message.mediaSizeBytes, duration: message.duration, durationSeconds, validKey, validMime, extensionMatchesMime, validSize, validDuration });
+      return { ...message, status: "failed" as const, sendError: { stage: "message" as const, code: "VOICE_METADATA_INVALID" } };
+    }
+    message = { ...message, duration: durationSeconds };
   }
   const { data, error } = await supabase.from("fc_messages").insert({ conversation_id: conversation.id, sender_id: user.id, body: message.type === "voice" ? "Sent you a voice message" : message.text, kind: message.type === "photo" ? "image" : message.type === "voice" ? "voice" : "text", media_path: message.mediaKey || (message.type === "voice" ? null : message.mediaUrl) || null, media_mime_type: message.type === "voice" ? canonicalVoiceMime(message.mediaMimeType) : message.mediaMimeType || null, media_size_bytes: message.mediaSizeBytes || null, media_duration_seconds: message.duration || null, reply_to: message.replyTo || null }).select("id,created_at,media_path,media_mime_type,media_size_bytes,media_duration_seconds").single();
   if (error) {
