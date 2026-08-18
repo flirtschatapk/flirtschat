@@ -135,13 +135,14 @@ export async function sendMessage(conversation: Conversation, message: ChatMessa
   }
   const { data, error } = await supabase.from("fc_messages").insert({ conversation_id: conversation.id, sender_id: user.id, body: message.type === "voice" ? "Sent you a voice message" : message.text, kind: message.type === "photo" ? "image" : message.type === "voice" ? "voice" : "text", media_path: message.mediaKey || (message.type === "voice" ? null : message.mediaUrl) || null, media_mime_type: message.type === "voice" ? canonicalVoiceMime(message.mediaMimeType) : message.mediaMimeType || null, media_size_bytes: message.mediaSizeBytes || null, media_duration_seconds: message.duration || null, reply_to: message.replyTo || null }).select("id,created_at,media_path,media_mime_type,media_size_bytes,media_duration_seconds").single();
   if (error) {
-    if (message.type === "voice" && process.env.NODE_ENV === "development") {
-      console.error("[VoiceSendFailure]", {
+    if (message.type === "voice") {
+      console.error("[VoiceDBInsertFailure]", {
         stage: "message",
         code: error.code,
         httpStatus: undefined,
         blobSize: message.mediaSizeBytes,
         blobMime: message.mediaMimeType,
+        duration: message.duration,
         message: error.message,
         details: error.details,
         hint: error.hint,
