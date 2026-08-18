@@ -16,7 +16,7 @@ export async function POST(request:Request){
   const size=body.size;
   const durationSeconds=body.durationSeconds;
   if(typeof size!=="number"||!Number.isInteger(size)||size<1||size>maxBytes)return NextResponse.json({error:{code:"INVALID_AUDIO_SIZE",message:"Voice message is too large"}},{status:413});
-  if(typeof durationSeconds!=="number"||!Number.isInteger(durationSeconds)||durationSeconds<1||durationSeconds>300)return NextResponse.json({error:{code:"INVALID_AUDIO_DURATION",message:"Voice message duration is invalid"}},{status:400});
+  if(typeof durationSeconds!=="number"||!Number.isInteger(durationSeconds)||durationSeconds<1||durationSeconds>60)return NextResponse.json({error:{code:"INVALID_AUDIO_DURATION",message:"Voice message duration is invalid"}},{status:400});
   const{data:membership,error:membershipError}=await supabase.from("fc_conversation_members").select("conversation_id").eq("conversation_id",body.conversationId).eq("user_id",user.id).maybeSingle();
   if(membershipError||!membership)return NextResponse.json({error:{code:"NOT_CONVERSATION_MEMBER",message:"Conversation unavailable"}},{status:403});
   const objectKey=`chat-voice/${body.conversationId}/${user.id}/${crypto.randomUUID()}.${voiceMimeExtension(contentType)}`;

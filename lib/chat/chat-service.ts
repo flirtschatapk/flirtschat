@@ -135,7 +135,7 @@ export async function sendMessage(conversation: Conversation, message: ChatMessa
     const validMime = baseMime === "audio/webm" || baseMime === "audio/ogg";
     const extensionMatchesMime = (message.mediaKey?.endsWith(".webm") && baseMime === "audio/webm") || (message.mediaKey?.endsWith(".ogg") && baseMime === "audio/ogg");
     const validSize = Number.isInteger(mediaSizeBytes) && mediaSizeBytes > 0 && mediaSizeBytes <= 10 * 1024 * 1024;
-    const validDuration = durationSeconds > 0 && durationSeconds <= 300;
+    const validDuration = durationSeconds > 0 && durationSeconds <= 60;
     if (!validKey || !validMime || !extensionMatchesMime || !validSize || !validDuration) {
       console.error("[VoiceMetadataInvalid]", { conversationId: conversation.id, blobMime: message.mediaMimeType, canonicalMime, baseMime, mediaSizeBytes: message.mediaSizeBytes, duration: message.duration, durationSeconds, validKey, validMime, extensionMatchesMime, validSize, validDuration });
       return { ...message, status: "failed" as const, sendError: { stage: "message" as const, code: "VOICE_METADATA_INVALID" } };

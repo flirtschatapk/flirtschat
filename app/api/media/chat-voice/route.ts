@@ -21,7 +21,7 @@ export async function GET(request:Request){
   if(message.kind!=="voice"||message.media_path!==key||message.conversation_id!==conversationIdFromKey||message.sender_id!==senderIdFromKey)return NextResponse.json({error:{code:"MEDIA_NOT_FOUND",message:"Media unavailable"}},{status:404});
   const webmMime=message.media_mime_type==="audio/webm"||message.media_mime_type==="audio/webm;codecs=opus";
   const oggMime=message.media_mime_type==="audio/ogg"||message.media_mime_type==="audio/ogg;codecs=opus";
-  if((key.endsWith(".webm")&&!webmMime)||(key.endsWith(".ogg")&&!oggMime)||!Number.isInteger(message.media_size_bytes)||!message.media_size_bytes||message.media_size_bytes>10*1024*1024||!Number.isInteger(message.media_duration_seconds)||!message.media_duration_seconds||message.media_duration_seconds>300)return NextResponse.json({error:{code:"MEDIA_NOT_FOUND",message:"Media unavailable"}},{status:404});
+  if((key.endsWith(".webm")&&!webmMime)||(key.endsWith(".ogg")&&!oggMime)||!Number.isInteger(message.media_size_bytes)||!message.media_size_bytes||message.media_size_bytes>10*1024*1024||!Number.isInteger(message.media_duration_seconds)||!message.media_duration_seconds||message.media_duration_seconds>60)return NextResponse.json({error:{code:"MEDIA_NOT_FOUND",message:"Media unavailable"}},{status:404});
   if(keyMembershipError||!keyMembership)return NextResponse.json({error:{code:"MEDIA_FORBIDDEN",message:"Media unavailable"}},{status:403});
   try{
     const url=await getSignedUrl(getR2Client(),new GetObjectCommand({Bucket:getPrivateBucket(),Key:key}),{expiresIn:120});
