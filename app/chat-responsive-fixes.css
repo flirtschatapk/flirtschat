@@ -1,0 +1,97 @@
+/* Final responsive pass for the conversation workspace. Keep the thread and
+   composer in the same flex column so the composer is always reachable. */
+.fc-chat-page.has-route .fc-chat-layout,
+.fc-chat-page.has-route .fc-thread {
+  min-height: 0 !important;
+}
+
+.fc-chat-page.has-route .fc-thread {
+  overflow: hidden !important;
+}
+
+.fc-chat-page.has-route .fc-message-list {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+}
+
+.fc-chat-page.has-route .fc-chat-input {
+  display: flex !important;
+  visibility: visible !important;
+  flex: 0 0 auto !important;
+  z-index: 50 !important;
+}
+
+.fc-chat-page.has-route .fc-thread-header {
+  position: relative !important;
+  z-index: 100 !important;
+  overflow: visible !important;
+  flex: 0 0 auto !important;
+}
+
+.fc-chat-page.has-route .fc-thread-header .fc-chat-menu {
+  z-index: 1000 !important;
+  width: min(320px, calc(100% - 20px)) !important;
+  max-height: calc(100svh - 76px) !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+}
+
+@media (min-width: 761px) {
+  .fc-chat-page.has-route .fc-chat-input {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    transform: none !important;
+  }
+
+  .fc-chat-page.has-route .fc-thread-header .fc-chat-menu {
+    right: 12px !important;
+    top: calc(100% - 4px) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .fc-chat-page.has-route .fc-thread-header {
+    flex-basis: 62px !important;
+  }
+
+  .fc-chat-page.has-route .fc-thread-header .fc-chat-menu {
+    right: 6px !important;
+    width: min(296px, calc(100vw - 20px)) !important;
+    max-height: calc(100svh - 70px) !important;
+    padding: 6px !important;
+    border-radius: 15px !important;
+  }
+
+  .fc-chat-page.has-route .fc-thread-header .fc-chat-menu > a,
+  .fc-chat-page.has-route .fc-thread-header .fc-chat-menu > button {
+    min-height: 42px !important;
+    height: 42px !important;
+    padding-inline: 9px !important;
+    gap: 9px !important;
+    font-size: 10px !important;
+  }
+
+  .fc-chat-page.has-route .fc-thread-header .fc-chat-menu > a svg,
+  .fc-chat-page.has-route .fc-thread-header .fc-chat-menu > button svg {
+    width: 15px !important;
+    height: 15px !important;
+  }
+
+  .fc-chat-page.has-route .fc-thread-header .fc-chat-menu .fc-chat-menu-divider {
+    margin-block: 3px !important;
+  }
+
+  .fc-chat-page.has-route .fc-disappearing-options {
+    padding-block: 1px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .fc-chat-page.has-route .fc-thread-header .fc-chat-menu {
+    right: 4px !important;
+    width: calc(100vw - 12px) !important;
+  }
+}
