@@ -125,6 +125,29 @@ export async function updateConversationMember(conversationId: string, changes: 
   if (error) throw error;
 }
 
+async function callChatLockRpc(name: string, args: Record<string, string>): Promise<boolean | void> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc(name, args);
+  if (error) throw error;
+  return data as boolean | void;
+}
+
+export async function setChatLockPin(conversationId: string, pin: string): Promise<void> {
+  await callChatLockRpc("fc_set_chat_lock_pin", { requested_conversation: conversationId, requested_pin: pin });
+}
+
+export async function verifyChatLockPin(conversationId: string, pin: string): Promise<boolean> {
+  return Boolean(await callChatLockRpc("fc_verify_chat_lock_pin", { requested_conversation: conversationId, requested_pin: pin }));
+}
+
+export async function changeChatLockPin(conversationId: string, currentPin: string, newPin: string): Promise<void> {
+  await callChatLockRpc("fc_change_chat_lock_pin", { requested_conversation: conversationId, current_pin: currentPin, requested_pin: newPin });
+}
+
+export async function disableChatLock(conversationId: string, currentPin: string): Promise<void> {
+  await callChatLockRpc("fc_disable_chat_lock", { requested_conversation: conversationId, current_pin: currentPin });
+}
+
 export async function setDisappearingMessages(conversationId: string, seconds: number | null): Promise<void> {
   const supabase = createClient();
   const { error } = await supabase.rpc("fc_set_disappearing_messages", { requested_conversation: conversationId, requested_seconds: seconds });

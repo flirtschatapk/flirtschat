@@ -252,6 +252,39 @@
   }
 }
 
+.fc-chat-lock-screen {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: radial-gradient(circle at 50% 25%, rgba(126,58,190,.16), transparent 50%), #07050c;
+}
+.fc-chat-lock-card {
+  width: min(420px, 100%);
+  padding: 22px;
+  border: 1px solid rgba(190,104,255,.28);
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(28,18,39,.96), rgba(8,7,13,.98));
+  box-shadow: 0 20px 60px rgba(0,0,0,.45), 0 0 34px rgba(145,62,220,.12);
+  text-align: center;
+}
+.fc-lock-back { display: inline-flex; align-items: center; gap: 7px; align-self: flex-start; min-height: 40px; margin: 0 auto 18px 0; padding: 0 13px; border: 1px solid rgba(255,255,255,.12); border-radius: 999px; background: rgba(255,255,255,.05); color: #eeeaf2; font-size: 11px; }
+.fc-lock-back svg { width: 16px; }
+.fc-chat-lock-card > svg { width: 34px; color: #c36cff; }
+.fc-chat-lock-card h2 { margin: 10px 0 6px; font-size: 20px; }
+.fc-chat-lock-card p { margin: 0 auto 20px; max-width: 280px; color: #a49aaa; font-size: 11px; line-height: 1.5; }
+.fc-pin-input-wrap { position: relative; display: block; width: min(280px,100%); margin: 12px auto 16px; }
+.fc-pin-boxes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }
+.fc-pin-boxes i { height: 56px; display: grid; place-items: center; border: 1px solid rgba(190,104,255,.32); border-radius: 13px; background: rgba(0,0,0,.25); color: #fff; font-size: 25px; font-style: normal; }
+.fc-pin-boxes i.filled { border-color: #bf65ff; box-shadow: 0 0 15px rgba(188,92,255,.22); }
+.fc-pin-input-wrap input { position: absolute; inset: 0; width: 100%; opacity: .01; cursor: text; }
+.fc-lock-primary,.fc-lock-secondary { width: 100%; min-height: 42px; margin-top: 8px; border-radius: 12px; font-size: 11px; }
+.fc-lock-primary { border: 0; background: linear-gradient(100deg,#f43d9e,#8848ee); color: #fff; }
+.fc-lock-secondary { border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.045); color: #eeeaf2; }
+.fc-lock-error { display: block; margin: -4px 0 8px; color: #ff91a4; font-size: 10px; }
+@media (max-width: 760px) { .fc-chat-lock-screen { padding: 16px 12px; } .fc-chat-lock-card { padding: 18px 16px; } }
+
 /* Match banner actions stay separate: profile navigation never dismisses the
    view-only banner, while X only changes the mounted thread state. */
 .fc-chat-page.has-route .fc-match-banner {
