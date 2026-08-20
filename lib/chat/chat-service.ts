@@ -5,6 +5,9 @@ import type { ChatMessage, Conversation, MessageStatus } from "./chat-types";
 type OwnMember = { conversation_id: string; last_read_at: string | null; muted_until: string | null; pinned_at: string | null; cleared_at: string | null; hidden_at: string | null; chat_locked: boolean };
 type OtherMember = OwnMember & { user_id: string };
 type Profile = { id: string; display_name: string; username: string | null; last_seen_at: string | null; verified: boolean | null; photo_key: string | null };
+export const CHAT_MESSAGE_PAGE_SIZE = 30;
+export type MessageCursor = { createdAt: string; id: string };
+export type MessagePage = { messages: ChatMessage[]; nextCursor: MessageCursor | null; hasMore: boolean };
 export type MessageRow = { id: string; conversation_id: string; sender_id: string; body: string; kind: string; media_path: string | null; media_mime_type?: string | null; media_size_bytes?: number | null; media_duration_seconds?: number | null; reply_to: string | null; created_at: string; deleted_at?: string | null };
 export function mapMessageRow(row: MessageRow, userId: string, otherLastReadAt?: string | null): ChatMessage { const status: MessageStatus = row.sender_id === userId && otherLastReadAt && new Date(otherLastReadAt) >= new Date(row.created_at) ? "seen" : row.sender_id === userId ? "sent" : "delivered"; const type = row.kind === "image" ? "photo" : row.kind === "voice" ? "voice" : "text"; const durationMatch = type === "voice" ? row.body.match(/(\d+)s\s*$/i) : null; const duration = row.media_duration_seconds ?? (durationMatch ? Number(durationMatch[1]) : undefined); const mediaUrl = type === "voice" && row.media_path ? `/api/media/chat-voice?key=${encodeURIComponent(row.media_path)}` : row.media_path || undefined; return { id: row.id, conversationId: row.conversation_id, sender: row.sender_id === userId ? "me" : "them", type, text: row.body, createdAt: new Date(row.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }), createdAtIso: row.created_at, status, replyTo: row.reply_to || undefined, mediaUrl, mediaKey: row.media_path || undefined, mediaMimeType: row.media_mime_type || undefined, mediaSizeBytes: row.media_size_bytes || undefined, duration: Number.isFinite(duration) ? duration : undefined }; }
 
@@ -41,7 +44,7 @@ export async function getConversations(): Promise<Conversation[]> {
   const [conversationResult, memberResult, messageResult, profileResult] = await Promise.all([
     supabase.from("fc_conversations").select("id,updated_at,disappearing_seconds").in("id", ids).order("updated_at", { ascending: false }),
     supabase.from("fc_conversation_members").select("conversation_id,user_id,last_read_at").in("conversation_id", ids).neq("user_id", user.id),
-    Promise.all(ids.map(conversationId => { const member = (mine as OwnMember[]).find(row => row.conversation_id === conversationId); let query = supabase.from("fc_messages").select("id,conversation_id,sender_id,body,kind,media_path,media_mime_type,media_size_bytes,media_duration_seconds,reply_to,created_at,deleted_at").eq("conversation_id", conversationId).is("deleted_at", null); if (member?.cleared_at) query = query.gt("created_at", member.cleared_at); return query.order("created_at", { ascending: false }).order("id", { ascending: false }).limit(50); })),
+    Promise.all(ids.map(conversationId => { const member = (mine as OwnMember[]).find(row => row.conversation_id === conversationId); let query = supabase.from("fc_messages").select("id,conversation_id,sender_id,body,kind,media_path,media_mime_type,media_size_bytes,media_duration_seconds,reply_to,created_at,deleted_at").eq("conversation_id", conversationId).is("deleted_at", null); if (member?.cleared_at) query = query.gt("created_at", member.cleared_at); return query.order("created_at", { ascending: false }).order("id", { ascending: false }).limit(CHAT_MESSAGE_PAGE_SIZE + 1); })),
     supabase.rpc("fc_my_conversation_profiles"),
   ]);
   if (conversationResult.error) throw conversationResult.error;
@@ -56,6 +59,7 @@ export async function getConversations(): Promise<Conversation[]> {
     const ownMember = (mine as OwnMember[]).find(row => row.conversation_id === conversation.id);
     const ownReadAt = ownMember?.last_read_at;
     const list = messageRows.filter(row => row.conversation_id === conversation.id).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime() || a.id.localeCompare(b.id));
+    const pageRows = list.slice(-CHAT_MESSAGE_PAGE_SIZE);
     const last = list.at(-1);
     return {
       id: conversation.id,
@@ -78,7 +82,8 @@ export async function getConversations(): Promise<Conversation[]> {
       match: true,
       disappearingSeconds: conversation.disappearing_seconds,
       chatLocked: Boolean(ownMember?.chat_locked),
-      messages: list.map(row => mapMessageRow(row as MessageRow, user.id, other?.last_read_at)),
+      messages: pageRows.map(row => mapMessageRow(row as MessageRow, user.id, other?.last_read_at)),
+      messagesHasMore: list.length > CHAT_MESSAGE_PAGE_SIZE,
     } satisfies Conversation;
   });
 }
@@ -130,15 +135,22 @@ export async function deleteMessageForMe(messageId: string): Promise<void> {
   if (error && error.code !== "23505") throw error;
 }
 
-export async function getOlderMessages(conversationId: string, before: string, beforeId: string, limit = 50): Promise<ChatMessage[]> {
+export async function getOlderMessages(conversationId: string, before: string, beforeId: string, limit = CHAT_MESSAGE_PAGE_SIZE): Promise<MessagePage> {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return [];
+  if (!user) return { messages: [], nextCursor: null, hasMore: false };
   const { data: member } = await supabase.from("fc_conversation_members").select("cleared_at").eq("conversation_id", conversationId).eq("user_id", user.id).maybeSingle();
   let query = supabase.from("fc_messages").select("id,conversation_id,sender_id,body,kind,media_path,media_mime_type,media_size_bytes,media_duration_seconds,reply_to,created_at,deleted_at").eq("conversation_id", conversationId).is("deleted_at", null).or(`created_at.lt.${before},and(created_at.eq.${before},id.lt.${beforeId})`); if (member?.cleared_at) query = query.gt("created_at", member.cleared_at);
-  const { data, error } = await query.order("created_at", { ascending: false }).order("id", { ascending: false }).limit(limit);
+  const { data, error } = await query.order("created_at", { ascending: false }).order("id", { ascending: false }).limit(limit + 1);
   if (error) throw error;
-  return (data ?? []).map(row => mapMessageRow(row as MessageRow, user.id)).reverse();
+  const rows = data ?? [];
+  const pageRows = rows.slice(0, limit);
+  const oldest = pageRows.at(-1);
+  return {
+    messages: pageRows.map(row => mapMessageRow(row as MessageRow, user.id)).reverse(),
+    nextCursor: oldest ? { createdAt: oldest.created_at, id: oldest.id } : null,
+    hasMore: rows.length > limit,
+  };
 }
 
 export async function getUnreadChatCount(): Promise<number> {
