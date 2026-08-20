@@ -224,3 +224,80 @@
     right: 8px !important;
   }
 }
+
+/* Match banner actions stay separate: profile navigation never dismisses the
+   view-only banner, while X only changes the mounted thread state. */
+.fc-chat-page.has-route .fc-match-banner {
+  min-width: 0;
+}
+
+.fc-chat-page.has-route .fc-match-banner > div {
+  min-width: 0;
+}
+
+.fc-chat-page.has-route .fc-match-banner > button.fc-match-profile,
+.fc-chat-page.has-route .fc-match-banner > button.fc-match-close {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 50%;
+  background: rgba(255,255,255,.06);
+  color: #fff;
+  display: grid;
+  place-items: center;
+}
+
+.fc-chat-page.has-route .fc-match-banner > button.fc-match-profile:hover,
+.fc-chat-page.has-route .fc-match-banner > button.fc-match-close:hover {
+  border-color: rgba(255,91,184,.55);
+  background: rgba(255,70,171,.16);
+}
+
+.fc-chat-page.has-route .fc-match-banner > button.fc-match-profile svg {
+  width: 17px;
+  height: 17px;
+}
+
+.fc-chat-page.has-route .fc-match-banner > button.fc-match-close svg {
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 760px) {
+  .fc-chat-page.has-route .fc-match-banner {
+    min-height: 62px;
+    margin: 7px 8px 3px;
+    padding: 7px 8px;
+    grid-template-columns: 40px minmax(0, 1fr) 38px 38px;
+    gap: 6px;
+    border-radius: 18px;
+  }
+
+  .fc-chat-page.has-route .fc-match-banner > span {
+    width: 40px;
+    height: 40px;
+  }
+
+  .fc-chat-page.has-route .fc-match-banner strong {
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .fc-chat-page.has-route .fc-match-banner small {
+    margin-top: 2px;
+    font-size: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .fc-chat-page.has-route .fc-match-banner > button.fc-match-profile,
+  .fc-chat-page.has-route .fc-match-banner > button.fc-match-close {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+  }
+}
