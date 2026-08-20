@@ -153,6 +153,33 @@
   animation: fc-load-older-spin .8s linear infinite;
 }
 
+.fc-chat-page.has-route .fc-reactions {
+  position: absolute;
+  right: 8px;
+  bottom: -13px;
+  z-index: 2;
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px 6px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 999px;
+  background: #100a16;
+  box-shadow: 0 4px 12px rgba(0,0,0,.3);
+  color: #f7eaff;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.fc-chat-page.has-route .fc-reactions > span.active {
+  color: #fff;
+  text-shadow: 0 0 8px rgba(255,91,184,.8);
+}
+
+.fc-chat-page.has-route .fc-edited-label {
+  color: #8d8295;
+  font-size: 7px;
+}
+
 @keyframes fc-load-older-spin {
   to { transform: rotate(360deg); }
 }
