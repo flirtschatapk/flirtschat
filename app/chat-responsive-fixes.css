@@ -298,12 +298,15 @@
 .fc-pin-boxes { gap: 10px; }
 .fc-pin-boxes i { height: 56px; border-radius: 15px; border-color: rgba(255,255,255,.14); background: rgba(0,0,0,.3); font-size: 27px; }
 .fc-pin-boxes i.filled { border-color: #c779ff; background: rgba(151,58,220,.14); box-shadow: 0 0 0 1px rgba(203,113,255,.18), 0 0 22px rgba(185,74,255,.22); }
+.fc-pin-input-wrap.active .fc-pin-boxes i.cursor { border-color: #d18aff; box-shadow: 0 0 0 1px rgba(209,138,255,.22), 0 0 20px rgba(185,74,255,.25); }
+.fc-pin-input-wrap.active .fc-pin-boxes i.cursor::after { content: ""; width: 2px; height: 22px; border-radius: 2px; background: #e3b9ff; animation: fc-pin-caret 1s step-end infinite; }
 .fc-lock-primary,.fc-lock-secondary { min-height: 50px; margin-top: 10px; border-radius: 14px; font-size: 13px; font-weight: 750; }
 .fc-lock-primary { box-shadow: 0 10px 25px rgba(190,50,165,.22); }
 .fc-lock-error { display: flex; align-items: center; gap: 8px; margin: -3px 0 12px; padding: 10px 11px; border: 1px solid rgba(255,103,145,.25); border-radius: 12px; background: rgba(117,24,54,.22); color: #ffb3c4; font-size: 12px; text-align: left; }
 .fc-lock-error::before { content: "!"; width: 18px; height: 18px; display: grid; place-items: center; flex: none; border: 1px solid currentColor; border-radius: 50%; font-size: 11px; font-weight: 800; }
 .fc-lock-error svg { display: none; }
 @media (max-width: 760px) { .fc-chat-lock-screen { padding: max(16px, env(safe-area-inset-top)) 12px max(18px, env(safe-area-inset-bottom)); } .fc-chat-lock-card { width: calc(100% - 0px); padding: 20px 17px 18px; } .fc-chat-lock-card h2 { font-size: 24px; } .fc-chat-lock-card p { font-size: 13px; } .fc-pin-boxes i { height: 52px; } }
+@keyframes fc-pin-caret { 50% { opacity: 0; } }
 
 /* Match banner actions stay separate: profile navigation never dismisses the
    view-only banner, while X only changes the mounted thread state. */
