@@ -23,6 +23,50 @@
   z-index: 50 !important;
 }
 
+/* Inline composer attachments: the existing attachment handlers remain
+   unchanged; the former plus menu is now an inline icon strip. */
+.fc-chat-page.has-route .fc-chat-input > .fc-plus {
+  display: none !important;
+}
+.fc-chat-page.has-route .fc-chat-input > .fc-attachment-menu {
+  position: static !important;
+  order: -1;
+  flex: 0 1 auto;
+  width: auto !important;
+  max-width: 46%;
+  min-width: 0;
+  display: flex !important;
+  align-items: center;
+  gap: 4px;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.fc-chat-page.has-route .fc-chat-input > .fc-attachment-menu::-webkit-scrollbar { display: none; }
+.fc-chat-page.has-route .fc-chat-input > .fc-attachment-menu button {
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px;
+  flex: 0 0 34px;
+  padding: 0 !important;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+}
+.fc-chat-page.has-route .fc-chat-input > .fc-attachment-menu button span { display: none !important; }
+.fc-chat-page.has-route .fc-chat-input > .fc-attachment-menu button svg { width: 17px; height: 17px; }
+.fc-chat-page.has-route .fc-chat-input > label { min-width: 58px; }
+@media (max-width: 380px) {
+  .fc-chat-page.has-route .fc-chat-input { gap: 3px; padding-inline: 6px; }
+  .fc-chat-page.has-route .fc-chat-input > .fc-attachment-menu { gap: 3px; max-width: 51%; }
+  .fc-chat-page.has-route .fc-chat-input > .fc-attachment-menu button { width: 32px !important; height: 32px !important; min-width: 32px; flex-basis: 32px; }
+  .fc-chat-page.has-route .fc-chat-input > label { min-width: 48px; }
+}
+
 .fc-chat-page.has-route .fc-thread-header {
   position: relative !important;
   z-index: 100 !important;
