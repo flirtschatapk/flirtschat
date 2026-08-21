@@ -613,6 +613,18 @@
   white-space: nowrap;
 }
 
+.fc-chat-page.has-route .fc-video-message {
+  position: relative;
+  width: min(300px, 68vw);
+  overflow: hidden;
+  border: 1px solid rgba(171, 94, 255, .42);
+  border-radius: 18px;
+  background: #08070d;
+  box-shadow: 0 8px 24px rgba(0,0,0,.34);
+}
+.fc-chat-page.has-route .fc-video-message video { display: block; width: 100%; max-height: 340px; aspect-ratio: 16 / 10; object-fit: contain; background: #050507; }
+.fc-chat-page.has-route .fc-private-video-watermark { position: absolute; left: 10px; right: 10px; bottom: 42px; pointer-events: none; color: rgba(255,255,255,.42); font-size: 8px; font-weight: 800; letter-spacing: .08em; text-align: center; text-shadow: 0 1px 7px #000; }
+
 .fc-camera-backdrop {
   position: fixed;
   z-index: 500;

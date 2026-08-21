@@ -1,4 +1,4 @@
-export type MessageType="text"|"photo"|"voice"|"system"|"gift";
+export type MessageType="text"|"photo"|"video"|"voice"|"system"|"gift";
 export type MessageStatus="sending"|"sent"|"delivered"|"seen"|"failed";
 export type MessageReaction={emoji:string;count:number;reacted:boolean};
 export type ChatMessage={id:string;conversationId:string;sender:"me"|"them"|"system";type:MessageType;text:string;createdAt:string;createdAtIso?:string;editedAt?:string;status?:MessageStatus;reaction?:string;reactions?:MessageReaction[];replyTo?:string;progress?:number;pinned?:boolean;duration?:number;mediaUrl?:string;mediaKey?:string;mediaMimeType?:string;mediaSizeBytes?:number;sendError?:{stage:"sign"|"r2"|"message";code?:string;httpStatus?:number;message?:string;details?:string;hint?:string}};

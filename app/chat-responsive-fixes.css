@@ -63,11 +63,39 @@
 .fc-chat-page.has-route .fc-chat-input > .fc-attachment-menu button span { display: none !important; }
 .fc-chat-page.has-route .fc-chat-input > .fc-attachment-menu button svg { width: 17px; height: 17px; }
 .fc-chat-page.has-route .fc-chat-input > label { min-width: 58px; }
+
+.fc-chat-page.has-route .fc-chat-input.has-gallery-preview {
+  display: block !important;
+  padding: 8px 10px !important;
+}
+.fc-chat-page.has-route .fc-chat-input.has-gallery-preview > *:not(.fc-gallery-preview) { display: none !important; }
+.fc-gallery-preview { width: min(100%, 560px); margin: 0 auto; display: grid; gap: 8px; }
+.fc-gallery-preview-media { position: relative; height: min(34vh, 260px); min-height: 150px; overflow: hidden; border: 1px solid rgba(171, 94, 255, .42); border-radius: 18px; background: #09070f; box-shadow: inset 0 1px rgba(255,255,255,.08), 0 12px 32px rgba(0,0,0,.35); }
+.fc-gallery-preview-media > img, .fc-gallery-preview-media > video { width: 100%; height: 100%; display: block; object-fit: contain; background: #050507; }
+.fc-gallery-preview-close { position: absolute; top: 9px; right: 9px; width: 36px; height: 36px; border: 1px solid rgba(255,255,255,.2); border-radius: 50%; display: grid; place-items: center; color: #fff; background: rgba(12,10,19,.82); backdrop-filter: blur(12px); z-index: 2; }
+.fc-gallery-preview-close svg { width: 16px; }
+.fc-gallery-upload-overlay { position: absolute; inset: auto 10px 10px; padding: 8px 10px; border: 1px solid rgba(194,126,255,.34); border-radius: 12px; display: grid; grid-template-columns: auto 1fr; gap: 5px 8px; align-items: center; color: #f5efff; background: rgba(9,7,15,.86); backdrop-filter: blur(10px); font-size: 10px; font-weight: 750; }
+.fc-gallery-upload-overlay svg { width: 14px; animation: fc-gallery-spin .9s linear infinite; }
+.fc-gallery-upload-overlay i { grid-column: 1 / -1; height: 3px; overflow: hidden; border-radius: 9px; background: rgba(255,255,255,.12); }
+.fc-gallery-upload-overlay b { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#8c4af0,#ee4aa9); transition: width .15s linear; }
+.fc-gallery-upload-error { display: flex; align-items: center; gap: 7px; padding: 8px 10px; border: 1px solid rgba(255,91,136,.3); border-radius: 11px; color: #ffb0c4; background: rgba(80,16,38,.3); font-size: 10px; }
+.fc-gallery-upload-error span { flex: 1; }
+.fc-gallery-upload-error button { padding: 5px 8px; border: 1px solid rgba(255,255,255,.16); border-radius: 8px; color: #fff; background: rgba(255,255,255,.08); font-size: 10px; }
+.fc-gallery-preview-compose { display: flex; align-items: flex-end; gap: 8px; }
+.fc-gallery-preview-compose textarea { min-height: 42px; max-height: 96px; flex: 1; resize: vertical; padding: 11px 12px; border: 1px solid rgba(255,255,255,.13); border-radius: 13px; outline: 0; color: #fff; background: rgba(255,255,255,.055); font: inherit; font-size: 12px; }
+.fc-gallery-preview-compose textarea:focus { border-color: rgba(177,94,255,.7); box-shadow: 0 0 0 3px rgba(155,74,255,.12); }
+.fc-gallery-preview-send { min-width: 82px; height: 42px; padding: 0 12px; border: 0; border-radius: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; color: #fff; background: linear-gradient(135deg,#ee4aa9,#844bf0); box-shadow: 0 8px 20px rgba(177,64,214,.25); font-size: 11px; font-weight: 800; }
+.fc-gallery-preview-send svg { width: 15px; }
+.fc-gallery-preview-send:disabled { opacity: .7; }
+@keyframes fc-gallery-spin { to { transform: rotate(360deg); } }
 @media (max-width: 380px) {
   .fc-chat-page.has-route .fc-chat-input { gap: 3px; padding-inline: 6px; }
   .fc-chat-page.has-route .fc-chat-input > .fc-attachment-menu { gap: 3px; max-width: 51%; }
   .fc-chat-page.has-route .fc-chat-input > .fc-attachment-menu button { width: 32px !important; height: 32px !important; min-width: 32px; flex-basis: 32px; }
   .fc-chat-page.has-route .fc-chat-input > label { min-width: 48px; }
+  .fc-gallery-preview-media { height: 30vh; min-height: 138px; }
+  .fc-gallery-preview-compose { gap: 5px; }
+  .fc-gallery-preview-send { min-width: 70px; padding-inline: 8px; }
 }
 
 .fc-chat-page.has-route .fc-thread-header {
