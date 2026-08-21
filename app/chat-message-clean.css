@@ -590,27 +590,16 @@
 
 .fc-chat-page.has-route .fc-private-photo-watermark {
   position: absolute;
-  inset: -28%;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  align-content: center;
-  gap: 34px 18px;
-  transform: rotate(-24deg);
+  right: 12px;
+  bottom: 10px;
   pointer-events: none;
   user-select: none;
   -webkit-user-select: none;
-  opacity: .28;
-  mix-blend-mode: screen;
-}
-
-.fc-chat-page.has-route .fc-private-photo-watermark span {
-  color: rgba(255,255,255,.82);
-  font-size: 9px;
+  color: rgba(244,239,255,.68);
+  font-size: 10px;
   font-weight: 800;
-  letter-spacing: .08em;
-  text-align: center;
+  letter-spacing: .12em;
   text-shadow: 0 1px 8px rgba(0,0,0,.85);
-  white-space: nowrap;
 }
 
 .fc-chat-page.has-route .fc-video-message {

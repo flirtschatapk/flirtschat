@@ -88,6 +88,25 @@
 .fc-gallery-preview-send svg { width: 15px; }
 .fc-gallery-preview-send:disabled { opacity: .7; }
 @keyframes fc-gallery-spin { to { transform: rotate(360deg); } }
+.fc-photo-viewer { position: fixed; z-index: 2000; inset: 0; display: flex; flex-direction: column; overflow: hidden; padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); color: #fff; background: radial-gradient(circle at 50% 35%, rgba(74,25,105,.34), transparent 48%), #050407; touch-action: none; }
+.fc-photo-viewer-header { flex: 0 0 52px; display: flex; align-items: center; gap: 14px; color: #eee8fa; font-size: 13px; font-weight: 750; }
+.fc-photo-viewer-back { width: 46px; height: 46px; border: 1px solid rgba(255,255,255,.18); border-radius: 50%; display: grid; place-items: center; color: #fff; background: rgba(25,22,34,.78); box-shadow: 0 8px 24px rgba(0,0,0,.36); backdrop-filter: blur(14px); }
+.fc-photo-viewer-back svg { width: 19px; }
+.fc-photo-viewer-frame { position: relative; flex: 1 1 auto; min-height: 0; display: grid; place-items: center; overflow: hidden; touch-action: none; }
+.fc-photo-viewer-media { position: relative; width: min(92vw, 1100px); height: min(78vh, 760px); overflow: hidden; border: 1px solid rgba(255,255,255,.13); border-radius: 20px; background: #08070c; box-shadow: 0 25px 90px rgba(0,0,0,.65); transform-origin: center; touch-action: none; cursor: grab; }
+.fc-photo-viewer-media:active { cursor: grabbing; }
+.fc-photo-viewer-media > img { width: 100%; height: 100%; display: block; object-fit: contain; pointer-events: none; user-select: none; -webkit-user-select: none; -webkit-user-drag: none; }
+.fc-photo-viewer-media.loading { background: linear-gradient(110deg,#08070c,#15101d,#08070c); }
+.fc-private-viewer-watermark { position: absolute; right: 14px; bottom: 11px; pointer-events: none; user-select: none; color: rgba(244,239,255,.68); font-size: 10px; font-weight: 800; letter-spacing: .12em; text-shadow: 0 1px 8px rgba(0,0,0,.9); }
+.fc-photo-viewer-spinner { position: absolute; left: 50%; top: 50%; width: 28px; height: 28px; margin: -14px; border: 2px solid rgba(255,255,255,.2); border-top-color: #c276ff; border-radius: 50%; animation: fc-gallery-spin .85s linear infinite; }
+.fc-photo-viewer-error { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 12px; color: #ddd3ea; font-size: 13px; }
+.fc-photo-viewer-error button { min-width: 78px; height: 36px; border: 1px solid rgba(194,126,255,.42); border-radius: 10px; color: #fff; background: rgba(126,63,175,.35); }
+.fc-photo-viewer-caption { flex: 0 0 auto; width: min(680px, 90vw); max-height: 56px; overflow: auto; margin: 8px auto; padding: 8px 12px; border: 1px solid rgba(255,255,255,.12); border-radius: 11px; color: #eee8f7; background: rgba(17,13,25,.8); backdrop-filter: blur(12px); text-align: center; font-size: 12px; }
+.fc-photo-viewer-controls { flex: 0 0 48px; align-self: center; display: flex; align-items: center; gap: 8px; padding-bottom: 2px; }
+.fc-photo-viewer-controls button { width: 40px; height: 40px; border: 1px solid rgba(255,255,255,.16); border-radius: 12px; display: grid; place-items: center; color: #f8f2ff; background: rgba(25,22,34,.82); backdrop-filter: blur(12px); }
+.fc-photo-viewer-controls button:disabled { opacity: .35; }
+.fc-photo-viewer-controls svg { width: 16px; }
+.fc-photo-viewer-controls span { min-width: 54px; color: #ddd0ee; font-size: 11px; font-weight: 800; text-align: center; }
 @media (max-width: 380px) {
   .fc-chat-page.has-route .fc-chat-input { gap: 3px; padding-inline: 6px; }
   .fc-chat-page.has-route .fc-chat-input > .fc-attachment-menu { gap: 3px; max-width: 51%; }
@@ -96,6 +115,9 @@
   .fc-gallery-preview-media { height: 30vh; min-height: 138px; }
   .fc-gallery-preview-compose { gap: 5px; }
   .fc-gallery-preview-send { min-width: 70px; padding-inline: 8px; }
+  .fc-photo-viewer { padding-inline: 8px; }
+  .fc-photo-viewer-media { width: 96vw; height: min(76vh, 650px); border-radius: 16px; }
+  .fc-photo-viewer-controls { gap: 5px; }
 }
 
 .fc-chat-page.has-route .fc-thread-header {
