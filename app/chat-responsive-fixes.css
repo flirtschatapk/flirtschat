@@ -28,6 +28,9 @@
 .fc-chat-page.has-route .fc-chat-input > .fc-plus {
   display: none !important;
 }
+.fc-chat-page.has-route .fc-chat-input .fc-emoji-button {
+  display: none !important;
+}
 .fc-chat-page.has-route .fc-chat-input > .fc-attachment-menu {
   position: static !important;
   order: -1;
