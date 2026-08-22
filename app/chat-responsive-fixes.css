@@ -16,6 +16,32 @@
   overscroll-behavior: contain;
 }
 
+.fc-pinned-message-bar {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 48px;
+  padding: 7px 14px;
+  border: 0;
+  border-bottom: 1px solid rgba(176, 92, 255, .18);
+  background: rgba(20, 14, 30, .92);
+  color: #f5efff;
+  text-align: left;
+  cursor: pointer;
+}
+.fc-pinned-message-bar > svg:first-child { color: #d58cff; width: 17px; height: 17px; flex: 0 0 auto; }
+.fc-pinned-message-bar > svg:last-child { margin-left: auto; color: #a892bd; width: 16px; height: 16px; flex: 0 0 auto; }
+.fc-pinned-message-bar span { min-width: 0; display: grid; gap: 1px; }
+.fc-pinned-message-bar strong { font-size: 11px; letter-spacing: .02em; }
+.fc-pinned-message-bar small { overflow: hidden; color: #b9a9c8; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.fc-pinned-message-bar:hover { background: rgba(38, 22, 54, .96); }
+.fc-pinned-message-highlight { animation: fc-pinned-highlight 1.4s ease-out; }
+@keyframes fc-pinned-highlight { 0%, 100% { box-shadow: none; } 25% { box-shadow: 0 0 0 3px rgba(207, 102, 255, .6); } }
+@media (max-width: 760px) {
+  .fc-pinned-message-bar { min-height: 46px; padding-inline: 12px; }
+}
+
 .fc-chat-page.has-route .fc-chat-input {
   display: flex !important;
   visibility: visible !important;

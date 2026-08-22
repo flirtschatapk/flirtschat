@@ -11,7 +11,7 @@ export type MessagePage = { messages: ChatMessage[]; nextCursor: MessageCursor |
 export type MessageRow = { id: string; conversation_id: string; sender_id: string; body: string; kind: string; media_path: string | null; media_mime_type?: string | null; media_size_bytes?: number | null; media_duration_seconds?: number | null; reply_to: string | null; created_at: string; edited_at?: string | null; deleted_at?: string | null };
  export function mapMessageRow(row: MessageRow, userId: string, otherLastReadAt?: string | null, reactions?: MessageReaction[], pinned?: boolean): ChatMessage { const status: MessageStatus = row.sender_id === userId && otherLastReadAt && new Date(otherLastReadAt) >= new Date(row.created_at) ? "seen" : row.sender_id === userId ? "sent" : "delivered"; const type = row.kind === "image" ? "photo" : row.kind === "video" ? "video" : row.kind === "voice" ? "voice" : "text"; const durationMatch = type === "voice" || type === "video" ? row.body.match(/(\d+)s\s*$/i) : null; const duration = row.media_duration_seconds ?? (durationMatch ? Number(durationMatch[1]) : undefined); const mediaUrl = type === "voice" && row.media_path ? `/api/media/chat-voice?key=${encodeURIComponent(row.media_path)}` : type === "photo" && row.media_path ? `/api/media/chat-image?messageId=${encodeURIComponent(row.id)}` : type === "video" && row.media_path ? `/api/media/chat-video?messageId=${encodeURIComponent(row.id)}` : undefined; return { id: row.id, conversationId: row.conversation_id, sender: row.sender_id === userId ? "me" : "them", type, text: row.body, createdAt: new Date(row.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }), createdAtIso: row.created_at, editedAt: row.edited_at || undefined, status, ...(reactions===undefined?{}:{reactions}), ...(pinned===undefined?{}:{pinned}), replyTo: row.reply_to || undefined, mediaUrl, mediaKey: row.media_path || undefined, mediaMimeType: row.media_mime_type || undefined, mediaSizeBytes: row.media_size_bytes || undefined, duration: Number.isFinite(duration) ? duration : undefined }; }
 type ReactionRow = { message_id: string; user_id: string; emoji: string };
-type PinRow = { message_id: string; user_id: string };
+type PinRow = { message_id: string; user_id: string; created_at?: string };
 async function loadMessageActions(supabase: ReturnType<typeof createClient>, messageIds: string[], userId: string) {
   const reactions = new Map<string, MessageReaction[]>(), pins = new Set<string>();
   if (!messageIds.length) return { reactions, pins };
@@ -115,6 +115,30 @@ export async function getConversations(): Promise<Conversation[]> {
   });
 }
 
+export async function getPinnedMessages(conversationId: string): Promise<ChatMessage[]> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+  const { data: pins, error: pinError } = await supabase.from("fc_message_pins").select("message_id,user_id,created_at").eq("user_id", user.id);
+  if (pinError) throw pinError;
+  const pinRows = (pins ?? []) as PinRow[];
+  const ids = pinRows.map(row => row.message_id);
+  if (!ids.length) return [];
+  const { data: member, error: memberError } = await supabase.from("fc_conversation_members").select("cleared_at").eq("conversation_id", conversationId).eq("user_id", user.id).maybeSingle();
+  if (memberError) throw memberError;
+  let query = supabase.from("fc_messages").select("id,conversation_id,sender_id,body,kind,media_path,media_mime_type,media_size_bytes,media_duration_seconds,reply_to,created_at,edited_at,deleted_at").in("id", ids).eq("conversation_id", conversationId).is("deleted_at", null);
+  if (member?.cleared_at) query = query.gt("created_at", member.cleared_at);
+  const { data: rows, error: messageError } = await query;
+  if (messageError) throw messageError;
+  const visible = rows ?? [];
+  const actions = await loadMessageActions(supabase, visible.map(row => row.id), user.id);
+  return visible.map(row => mapMessageRow(row as MessageRow, user.id, null, actions.reactions.get(row.id), actions.pins.has(row.id))).sort((a, b) => {
+    const aPin = pinRows.find(pin => pin.message_id === a.id)?.created_at ?? a.createdAtIso ?? "";
+    const bPin = pinRows.find(pin => pin.message_id === b.id)?.created_at ?? b.createdAtIso ?? "";
+    return new Date(bPin).getTime() - new Date(aPin).getTime();
+  });
+}
+
 export function saveConversations(_items: Conversation[]) { void _items; }
 
 export async function updateConversationMember(conversationId: string, changes: { muted_until?: string | null; pinned_at?: string | null; cleared_at?: string | null; hidden_at?: string | null; chat_locked?: boolean }): Promise<void> {
@@ -185,7 +209,9 @@ export async function deleteConversationForMe(conversationId: string): Promise<v
 
 export async function deleteMessageForEveryone(conversationId: string, messageId: string): Promise<void> {
   const supabase = createClient();
-  const { data: existing, error: lookupError } = await supabase.from("fc_messages").select("id").eq("id", messageId).eq("conversation_id", conversationId).maybeSingle();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthenticated");
+  const { data: existing, error: lookupError } = await supabase.from("fc_messages").select("id").eq("id", messageId).eq("conversation_id", conversationId).eq("sender_id", user.id).is("deleted_at", null).maybeSingle();
   if (lookupError) throw lookupError;
   if (!existing) throw new Error("MESSAGE_NOT_FOUND_OR_NOT_AUTHORIZED");
   const { error } = await supabase.from("fc_messages").update({ deleted_at: new Date().toISOString() }).eq("id", messageId).eq("conversation_id", conversationId);
