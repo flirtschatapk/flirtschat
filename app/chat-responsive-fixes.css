@@ -38,6 +38,10 @@
 .fc-pinned-message-bar:hover { background: rgba(38, 22, 54, .96); }
 .fc-pinned-message-highlight { animation: fc-pinned-highlight 1.4s ease-out; }
 @keyframes fc-pinned-highlight { 0%, 100% { box-shadow: none; } 25% { box-shadow: 0 0 0 3px rgba(207, 102, 255, .6); } }
+.fc-chat-page.has-route .fc-message[data-pinned="true"] .fc-message-meta::before { content: "Pinned"; display: inline-flex; align-items: center; margin-right: 5px; color: #d7a0ff; font-size: 10px; font-weight: 700; letter-spacing: .02em; }
+@media (prefers-reduced-motion: reduce) {
+  .fc-pinned-message-highlight { animation: none; box-shadow: 0 0 0 3px rgba(207, 102, 255, .55); }
+}
 @media (max-width: 760px) {
   .fc-pinned-message-bar { min-height: 46px; padding-inline: 12px; }
 }
