@@ -8,6 +8,7 @@ import {useEffect,useRef,useState} from "react";
 import {useForm} from "react-hook-form";
 import {AppBottomNav} from "@/components/app-bottom-nav";
 import {ProfilePhotoManager} from "@/components/profile/profile-photo-manager";
+import {FlirtschatLoader} from "@/components/ui/flirtschat-loader";
 import {useCurrentProfile} from "@/components/profile/current-profile-provider";
 import {accountProfileDefaults,accountProfileSchema,type AccountProfileValues} from "@/lib/account-profile-schema";
 import {globalCountries} from "@/lib/global-countries";
@@ -55,7 +56,7 @@ export function AccountInformationForm(){
   });
   const cancel=()=>{if(isDirty){reset(originalValues.current);setUsernameState("current");setLoadError("");return}router.push("/settings")};
 
-  if(!ready)return <main className="account-info-loading"><LoaderCircle className="spin"/><span>Loading account information…</span></main>;
+  if(!ready)return <FlirtschatLoader context="profile"/>;
 
   return <main className="account-info-page">
     <header className="account-info-header"><Link href="/settings" aria-label="Back to settings"><ArrowLeft/></Link><div><h1>Account Information</h1><p>Keep your identity and profile details up to date.</p></div><span className="account-security"><ShieldCheck/></span></header>

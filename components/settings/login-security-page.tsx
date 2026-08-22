@@ -4,6 +4,7 @@ import {AlertTriangle,ArrowLeft,Check,ChevronRight,Chrome,Clock3,Fingerprint,Key
 import Link from "next/link";
 import {useEffect,useState} from "react";
 import {AppBottomNav} from "@/components/app-bottom-nav";
+import {FlirtschatLoader} from "@/components/ui/flirtschat-loader";
 import {disableTwoFactor,loadSecurityState,MOCK_2FA_CODE,registerPasskey,removePasskey,revokeOtherSessions,revokeSession,setLoginAlerts,toggleTrustedSession,verifyTwoFactor,type SecurityState} from "@/lib/security-settings-service";
 
 export function LoginSecurityPage(){
@@ -11,7 +12,7 @@ export function LoginSecurityPage(){
   useEffect(()=>setState(loadSecurityState()),[]);
   const run=async(id:string,action:()=>Promise<SecurityState>,message:string)=>{if(busy)return;setBusy(id);setError("");try{setState(await action());setNotice(message);setTimeout(()=>setNotice(""),3000)}catch(reason){setError(reason instanceof Error?reason.message:"Security action failed")}finally{setBusy("")}};
   const submitTwoFactor=async()=>{if(busy)return;setBusy("2fa");setError("");try{const next=await verifyTwoFactor(code);setState(next);setTwoFactorOpen(false);setCode("");setNotice("Two-step verification enabled");setTimeout(()=>setNotice(""),3000)}catch(reason){setError(reason instanceof Error?reason.message:"Verification failed")}finally{setBusy("")}};
-  if(!state)return <main className="security-loading"><LoaderCircle className="spin"/>Loading security settings…</main>;
+  if(!state)return <FlirtschatLoader context="settings"/>;
   return <main className="security-page">
     <header className="security-header"><Link href="/settings" aria-label="Back to settings"><ArrowLeft/></Link><div><h1>Login & Security</h1><p>Manage access, devices and protection</p></div><span><ShieldCheck/></span></header>
     <div className="security-shell">

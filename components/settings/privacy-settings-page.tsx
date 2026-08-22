@@ -5,6 +5,7 @@ import Link from "next/link";
 import {useRouter} from "next/navigation";
 import {useEffect,useState,type ReactNode} from "react";
 import {AppBottomNav} from "@/components/app-bottom-nav";
+import {FlirtschatLoader} from "@/components/ui/flirtschat-loader";
 import {PRIVACY_SETTINGS_EVENT,PRIVACY_SETTINGS_KEY,loadPrivacySettings,resetPrivacySettings,savePrivacySettings,type PrivacyAudience,type PrivacySettings} from "@/lib/privacy-settings";
 import {isPremiumUser} from "@/lib/discover-entitlements";
 
@@ -14,7 +15,7 @@ export function PrivacySettingsPage(){
   const [saved,setSaved]=useState(false);
   const [premium,setPremium]=useState(false);
   useEffect(()=>{const sync=()=>{const active=isPremiumUser();setPremium(active);const stored=loadPrivacySettings();if(!active&&(!stored.showOnlineStatus||!stored.readReceipts)){const enforced={...stored,showOnlineStatus:true,readReceipts:true};savePrivacySettings(enforced);setValue(enforced)}else setValue(stored)};sync();const storage=(event:StorageEvent)=>{if(event.key===PRIVACY_SETTINGS_KEY)sync()};window.addEventListener(PRIVACY_SETTINGS_EVENT,sync);window.addEventListener("flirtschat:premium-change",sync);window.addEventListener("storage",storage);return()=>{window.removeEventListener(PRIVACY_SETTINGS_EVENT,sync);window.removeEventListener("flirtschat:premium-change",sync);window.removeEventListener("storage",storage)}},[]);
-  if(!value)return <main className="privacy-loading">Loading privacy settings...</main>;
+  if(!value)return <FlirtschatLoader context="settings"/>;
   const update=<K extends keyof PrivacySettings>(key:K,next:PrivacySettings[K])=>{const updated={...value,[key]:next};setValue(updated);savePrivacySettings(updated);setSaved(true);window.setTimeout(()=>setSaved(false),1800)};
   const requirePremium=()=>router.push("/premium");
   const reset=()=>{setValue(resetPrivacySettings());setSaved(true);window.setTimeout(()=>setSaved(false),1800)};

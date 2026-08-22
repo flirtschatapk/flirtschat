@@ -4,6 +4,7 @@ import {ArrowLeft,Check,ChevronRight,Clock3,LoaderCircle,LockKeyhole,Mail,MailCh
 import Link from "next/link";
 import {useEffect,useMemo,useRef,useState} from "react";
 import {AppBottomNav} from "@/components/app-bottom-nav";
+import {FlirtschatLoader} from "@/components/ui/flirtschat-loader";
 import {createClient} from "@/lib/supabase/client";
 import {confirmEmailVerification,confirmPhoneVerification,MOCK_PHONE_CODE,sendEmailVerification,sendPhoneVerification} from "@/lib/contact-verification-service";
 
@@ -31,7 +32,7 @@ export function EmailPhonePage(){
   const removePhone=()=>{setPhone("");setCode("");setPhoneVerified(false);setPhoneStage("idle");originalPhone.current="";void persist(email,"");showNotice("Phone number removed")};
   const maskedPhone=useMemo(()=>phone?`${phone.slice(0,Math.max(0,phone.length-4)).replace(/\d/g,"•")}${phone.slice(-4)}`:"No phone added",[phone]);
 
-  if(!ready)return <main className="contact-loading"><LoaderCircle className="spin"/>Loading contact settings…</main>;
+  if(!ready)return <FlirtschatLoader context="settings"/>;
   return <main className="contact-page">
     <header className="contact-header"><Link href="/settings" aria-label="Back to settings"><ArrowLeft/></Link><div><h1>Email & Phone</h1><p>Manage verification and account recovery</p></div><span><ShieldCheck/></span></header>
     <div className="contact-shell">

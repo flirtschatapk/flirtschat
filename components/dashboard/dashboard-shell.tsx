@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-html-link-for-pages */
 
-import {Bell,Crown,Globe2,LoaderCircle,MapPin,Search,SlidersHorizontal,Sparkles,X} from "lucide-react";
+import {Bell,Crown,Globe2,MapPin,Search,SlidersHorizontal,Sparkles,X} from "lucide-react";
 import {useRouter} from "next/navigation";
 import {useEffect,useState} from "react";
 import {DashboardCard,TabButton} from "@/components/ui/dashboard-primitives";
@@ -16,6 +16,7 @@ import {dismissProfileBanner} from "@/lib/profile-service";
 import {DesktopSidebar} from "./desktop-sidebar";
 import {GlobalProfileGrid} from "./global-profile-grid";
 import {MobileBottomNav} from "./mobile-bottom-nav";
+import {FlirtschatLoader} from "@/components/ui/flirtschat-loader";
 
 const tabs=["For you","Nearby","New","Popular"] as const;
 
@@ -27,7 +28,7 @@ export function DashboardShell() {
   useEffect(()=>{if(!loading){setTimedOut(false);return}const timeout=window.setTimeout(()=>setTimedOut(true),8000);return()=>window.clearTimeout(timeout)},[loading]);
   useEffect(()=>{try{setWelcomeVisible(localStorage.getItem("flirtschat:hide-global-welcome")!=="1")}catch{}},[]);
   const openFilters=()=>{if(!isPremiumUser()){router.push("/premium");return}setFiltersOpen(value=>!value)};
-  if(loading||!profile)return <main className="route-loading">{error||timedOut?<><span>We&apos;re having trouble loading your account.</span><button type="button" onClick={()=>{setTimedOut(false);void refresh()}}>Retry</button></>:<><LoaderCircle className="spin"/><span>Opening your profile…</span></>}</main>;
+  if(loading||!profile)return error||timedOut?<main className="route-loading"><span>We&apos;re having trouble loading your account.</span><button type="button" onClick={()=>{setTimedOut(false);void refresh()}}>Retry</button></main>:<FlirtschatLoader message="Getting things ready..." variant="page"/>;
   return <main className="dating-dashboard global-dashboard-clean dashboard-production">
     <DesktopSidebar mobileOpen={false} onClose={()=>{}}/>
     <div className="global-page-shell dashboard-container">

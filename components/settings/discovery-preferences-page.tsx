@@ -1,9 +1,10 @@
 "use client";
 
-import {ArrowLeft,Check,Compass,Globe2,Heart,LoaderCircle,MapPin,RotateCcw,ShieldCheck,Sparkles,Users} from "lucide-react";
+import {ArrowLeft,Check,Compass,Globe2,Heart,MapPin,RotateCcw,ShieldCheck,Sparkles,Users} from "lucide-react";
 import Link from "next/link";
 import {useEffect,useState} from "react";
 import {AppBottomNav} from "@/components/app-bottom-nav";
+import {FlirtschatLoader} from "@/components/ui/flirtschat-loader";
 import {DISCOVER_PREFERENCES_EVENT,DISCOVER_PREFERENCES_KEY,loadDiscoverPreferences,resetDiscoverPreferences,saveDiscoverPreferences} from "@/lib/discover-preferences";
 import {type DiscoverFilters} from "@/lib/discover-types";
 import {globalCountries} from "@/lib/global-countries";
@@ -14,7 +15,7 @@ export function DiscoveryPreferencesPage(){
   const [value,setValue]=useState<DiscoverFilters|null>(null),[saved,setSaved]=useState(false),[count,setCount]=useState<number|null>(null);
   useEffect(()=>{const sync=()=>setValue(loadDiscoverPreferences());sync();const storage=(event:StorageEvent)=>{if(event.key===DISCOVER_PREFERENCES_KEY)sync()};window.addEventListener(DISCOVER_PREFERENCES_EVENT,sync);window.addEventListener("storage",storage);return()=>{window.removeEventListener(DISCOVER_PREFERENCES_EVENT,sync);window.removeEventListener("storage",storage)}},[]);
   useEffect(()=>{if(!value)return;let active=true;setCount(null);void getProfiles("all",value).then(rows=>{if(active)setCount(rows.length)}).catch(()=>{if(active)setCount(0)});return()=>{active=false}},[value]);
-  if(!value)return <main className="discovery-pref-loading"><LoaderCircle className="spin"/>Loading discovery preferences…</main>;
+  if(!value)return <FlirtschatLoader context="settings"/>;
   const change=<K extends keyof DiscoverFilters>(key:K,next:DiscoverFilters[K])=>{const updated={...value,[key]:next};setValue(updated);saveDiscoverPreferences(updated);setSaved(true);setTimeout(()=>setSaved(false),1800)};
   const toggleInterest=(item:string)=>change("interests",value.interests.includes(item)?value.interests.filter(current=>current!==item):[...value.interests,item]);
   const reset=()=>{const next=resetDiscoverPreferences();setValue(next);setSaved(true);setTimeout(()=>setSaved(false),1800)};

@@ -3,13 +3,14 @@ import {ArrowLeft,BadgeCheck,Check,ChevronRight,Clock3,FileWarning,LockKeyhole,M
 import Link from "next/link";
 import {useEffect,useMemo,useState,type CSSProperties,type ReactNode} from "react";
 import {AppBottomNav} from "@/components/app-bottom-nav";
+import {FlirtschatLoader} from "@/components/ui/flirtschat-loader";
 import {SAFETY_STATE_EVENT,SAFETY_STATE_KEY,loadSafetyState,saveSafetyState,type SafetyChecklist,type SafetyState} from "@/lib/safety-center-service";
 const checks:[keyof SafetyChecklist,string,string][]=[["meetPublic","Meet in a public place","Choose a busy, familiar location"],["tellFriend","Tell someone your plans","Share who, where and when"],["ownTransport","Plan your own transport","Keep control of how you leave"],["protectDetails","Protect personal details","Avoid sharing your address or finances"],["trustInstincts","Trust your instincts","Leave whenever something feels wrong"]];
 export function SafetyCenterPage(){
  const [state,setState]=useState<SafetyState|null>(null),[notice,setNotice]=useState(""),[now,setNow]=useState(Date.now());
  useEffect(()=>{const sync=()=>setState(loadSafetyState());sync();const storage=(event:StorageEvent)=>{if(event.key===SAFETY_STATE_KEY)sync()};window.addEventListener(SAFETY_STATE_EVENT,sync);window.addEventListener("storage",storage);const timer=window.setInterval(()=>setNow(Date.now()),1000);return()=>{window.removeEventListener(SAFETY_STATE_EVENT,sync);window.removeEventListener("storage",storage);window.clearInterval(timer)}},[]);
  const score=useMemo(()=>state?Math.round(Object.values(state.checklist).filter(Boolean).length/5*100):0,[state]);
- if(!state)return <main className="safety-loading">Loading Safety Center...</main>;
+ if(!state)return <FlirtschatLoader context="settings"/>;
  const update=(next:SafetyState)=>{setState(next);saveSafetyState(next)},flash=(text:string)=>{setNotice(text);window.setTimeout(()=>setNotice(""),2500)};
  const remaining=state.checkIn?Math.max(0,new Date(state.checkIn.endsAt).getTime()-now):0,remainingText=`${String(Math.floor(remaining/60000)).padStart(2,"0")}:${String(Math.floor(remaining/1000)%60).padStart(2,"0")}`;
  const start=(minutes:number)=>{update({...state,checkIn:{minutes,endsAt:new Date(Date.now()+minutes*60000).toISOString()}});flash(`${minutes}-minute safety check-in started`)};
