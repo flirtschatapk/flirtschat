@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react/no-unescaped-entities */
 
 import{AnimatePresence,motion,useReducedMotion}from"framer-motion";
 import{ArrowDown,ArrowLeft,BadgeCheck,Ban,Bell,BellOff,Camera,ChevronRight,Clipboard,Crown,Flag,Gift,Image as ImageIcon,LockKeyhole,MessageCircle,MessageSquareX,Mic,Minus,MoreHorizontal,Pencil,Pin,PinOff,Play,Plus,RefreshCw,Reply,RotateCcw,Search,Send,ShieldAlert,Smile, Sparkles,Square,Star,Timer,Trash2,UserRound,X}from"lucide-react";
@@ -18,6 +19,7 @@ import{useChatUnread}from"@/components/chat/chat-unread-provider";
 import{createClient}from"@/lib/supabase/client";
 import{subscribeToPublicProfileUpdates}from"@/lib/public-profile-realtime";
 import{blockUser,reportUser,unblockUserRemote}from"@/lib/community-service";
+import{FlirtschatSkeleton}from"@/components/ui/flirtschat-skeleton";
 import{getIcebreakers,type IcebreakerCategory}from"@/lib/chat/icebreaker-service";
 import{canonicalVoiceMime}from"@/lib/chat/voice-media";
 import{getUserCacheStale,setUserCache}from"@/lib/app-cache";
@@ -78,7 +80,7 @@ export function ChatLayout({conversationId}:{conversationId?:string}){
     <div className="fc-chat-tabs" role="tablist">{(["All","Unread","Matches","Favorites"]as const).map(value=><button role="tab" aria-selected={tab===value} className={tab===value?"active":""} onClick={()=>setTab(value)} key={value}>{value}</button>)}</div>
     <div className="fc-conversation-scroll">{loading?Array.from({length:5},(_,i)=><div className="fc-conversation-skeleton" key={i}/>):visible.length?visible.map(item=><ConversationRow key={item.id} item={item} active={item.id===active?.id} onRead={()=>mutate(item.id,{unread:0})}/>):<div className="fc-chat-empty"><MessageCircle/><strong>No conversations</strong><span>New matches will appear here.</span></div>}</div>
    </aside>
-   <section className="fc-thread">{active?<Thread conversation={active} update={change=>mutate(active.id,change)} setAll={update} reduced={Boolean(reduce)} onNotice={setNotice}/>:conversationId?<div className="fc-thread-empty"><MessageCircle/><h2>{loading?"Opening conversation…":"Conversation unavailable"}</h2><p>{loading?"Loading your messages.":"We couldn't load this conversation."}</p>{!loading&&<button type="button" onClick={()=>void load()}>Retry</button>}</div>:items.length?<div className="fc-thread-empty"><MessageCircle/><h2>Select a conversation</h2><p>Choose someone from your messages to start chatting.</p></div>:<div className="fc-thread-empty"><MessageCircle/><h2>No conversations yet</h2><p>Your conversations will appear here after you chat with a match.</p></div>}</section>
+   <section className="fc-thread">{active?<Thread conversation={active} update={change=>mutate(active.id,change)} setAll={update} reduced={Boolean(reduce)} onNotice={setNotice}/>:conversationId?loading?<FlirtschatSkeleton variant="chat"/>:<div className="fc-thread-empty"><MessageCircle/><h2>Conversation unavailable</h2><p>We couldn't load this conversation.</p><button type="button" onClick={()=>void load()}>Retry</button></div>:items.length?<div className="fc-thread-empty"><MessageCircle/><h2>Select a conversation</h2><p>Choose someone from your messages to start chatting.</p></div>:<div className="fc-thread-empty"><MessageCircle/><h2>No conversations yet</h2><p>Your conversations will appear here after you chat with a match.</p></div>}</section>
   </div>
   
   {notice&&<div className="fc-chat-toast" role="status" onPointerDown={event=>{toastStartX.current=event.clientX}} onPointerUp={event=>{if(toastStartX.current!==null&&Math.abs(event.clientX-toastStartX.current)>45)setNotice("");toastStartX.current=null}} onPointerCancel={()=>{toastStartX.current=null}}>{notice}<button onClick={()=>setNotice("")} aria-label="Dismiss notification"><X/></button></div>}

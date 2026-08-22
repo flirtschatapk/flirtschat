@@ -20,6 +20,7 @@ import {createClient} from "@/lib/supabase/client";
 import {subscribeToPublicProfileUpdates} from "@/lib/public-profile-realtime";
 import {useCurrentProfile} from "@/components/profile/current-profile-provider";
 import {getUserCache,setUserCache} from "@/lib/app-cache";
+import {FlirtschatLoader} from "@/components/ui/flirtschat-loader";
 
 export function DiscoverExperience() {
   const{user}=useCurrentProfile();
@@ -145,7 +146,7 @@ export function DiscoverExperience() {
     return () => window.removeEventListener("keydown", key);
   }, [action, details, filterOpen, match]);
 
-  if (!ready) return <main className="route-loading"><LoaderCircle className="spin"/><span>Finding your vibe…</span></main>;
+  if (!ready) return <FlirtschatLoader context="discovery"/>;
 
   return <main className="discover-page discover-page-v2">
     <DiscoverNavigation/>

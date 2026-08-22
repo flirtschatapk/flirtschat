@@ -14,6 +14,7 @@ import "./splash.css";
 import "./community-features.css";
 import "./admin-live.css";
 import "./chat-voice.css";
+import "./flirtschat-loading.css";
 
 export const viewport:Viewport={
   width:"device-width",

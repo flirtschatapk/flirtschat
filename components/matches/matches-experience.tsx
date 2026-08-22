@@ -10,6 +10,7 @@ import {createClient} from "@/lib/supabase/client";
 import {subscribeToPublicProfileUpdates} from "@/lib/public-profile-realtime";
 import {markMatchViewed,openMatchConversation} from "@/lib/chat/chat-service";
 import {getUserCache,setUserCache} from "@/lib/app-cache";
+import {FlirtschatLoader} from "@/components/ui/flirtschat-loader";
 
 type Tab="new"|"super"|"all";
 type Match={id:string;profileId:string;name:string;username:string|null;avatarUrl:string|null;lastSeen:string|null;verified:boolean;premium:boolean;created:string;isNew:boolean;isSuperLike:boolean};
@@ -25,6 +26,7 @@ export function MatchesExperience(){
   const viewed=useCallback((matchId:string,isNew:boolean)=>setItems(current=>current.map(item=>item.id===matchId?{...item,isNew}:item)),[]);
   const empty=tab==="new"?"No new matches":tab==="super"?"No Super Like matches":"No matches yet";
   const tabs:[Tab,string,typeof Heart][]=[["new","New",Sparkles],["super","Super Likes",Crown],["all","All Matches",Heart]];
+  if(loading&&!items.length)return <FlirtschatLoader context="matches"/>;
   return <main className="matches-page"><DesktopSidebar active="matches"/><div className="matches-shell"><header className="matches-top-header"><a className="matches-brand" href="/matches">FLIRTSCHAT</a><div><a className="matches-header-action premium" href="/premium"><Crown/></a><a className="matches-header-action notification" href="/notifications"><Bell/></a></div></header><div className="matches-tabs" role="tablist" aria-label="Match filters">{tabs.map(([value,label,Icon])=><button type="button" role="tab" aria-selected={tab===value} className={tab===value?"active":""} onClick={()=>setTab(value)} key={value}><Icon/><span>{label}</span><b>{counts[value]}</b></button>)}</div><section className="matches-list">{loading?<p>Loading matches…</p>:error?<p>{error}<button type="button" onClick={()=>void load()}>Retry</button></p>:visible.length?visible.map(person=><MatchCard person={person} onViewed={viewed} key={person.id}/>):<p>{empty}</p>}</section></div><AppBottomNav active="matches"/></main>;
 }
 function MatchCard({person,onViewed}:{person:Match;onViewed:(matchId:string,isNew:boolean)=>void}){
