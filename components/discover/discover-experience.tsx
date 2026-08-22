@@ -5,7 +5,6 @@ import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {ActionButtons, type DiscoverAction} from "./action-buttons";
 import {DiscoverEmptyState} from "./discover-empty-state";
 import {DiscoverFilter} from "./discover-filter";
-import {DiscoverHeader} from "./discover-header";
 import {DiscoverNavigation} from "./discover-navigation";
 import {DiscoverTabs} from "./discover-tabs";
 import {MatchModal} from "./match-modal";
@@ -151,7 +150,7 @@ export function DiscoverExperience() {
   return <main className="discover-page discover-page-v2">
     <DiscoverNavigation/>
     <div className="discover-shell">
-      <div className="discover-unified-header"><DiscoverHeader/><DiscoverTabs value={tab} onChange={setTab}/></div>
+      <div className="discover-unified-header discover-swipes-header"><DiscoverTabs value={tab} onChange={setTab}/></div>
       <section className="discover-stage" aria-live="polite">
         {busy && profiles.length === 0 ? <ProfileCardSkeleton/> : error ? <DiscoverEmptyState type="error" onRetry={() => void load()}/> : !active ? <DiscoverEmptyState onRetry={() => void load()}/> : <>
           <ResponsiveProfileGallery profiles={profiles} index={index} busy={busy} direction={direction} onOpen={selectedIndex => { setIndex(selectedIndex); setDetails(true); }} onSwipe={nextAction => void action(nextAction)} renderDesktopActions={selectedIndex => <ActionButtons disabled={busy} premium={premium} quota={quota} canRewind={Boolean(actionState?.canRewind)} onAction={nextAction => void action(nextAction, selectedIndex)}/>} />
