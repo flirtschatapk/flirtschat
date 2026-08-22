@@ -211,10 +211,7 @@ export async function deleteMessageForEveryone(conversationId: string, messageId
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Unauthenticated");
-  const { data: existing, error: lookupError } = await supabase.from("fc_messages").select("id").eq("id", messageId).eq("conversation_id", conversationId).eq("sender_id", user.id).is("deleted_at", null).maybeSingle();
-  if (lookupError) throw lookupError;
-  if (!existing) throw new Error("MESSAGE_NOT_FOUND_OR_NOT_AUTHORIZED");
-  const { error } = await supabase.from("fc_messages").update({ deleted_at: new Date().toISOString() }).eq("id", messageId).eq("conversation_id", conversationId);
+  const { error } = await supabase.from("fc_messages").update({ deleted_at: new Date().toISOString() }).eq("id", messageId).eq("conversation_id", conversationId).eq("sender_id", user.id).is("deleted_at", null);
   if (error) throw error;
 }
 
