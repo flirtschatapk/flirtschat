@@ -46,3 +46,14 @@
 .fc-global-comment>button{flex:none;border-radius:8px}
 @media(max-width:700px){.fc-global-comments-backdrop{align-items:end;padding:0;background:rgba(0,0,0,.68)}.fc-global-comments{width:100%;max-height:calc(100svh - env(safe-area-inset-top));border-radius:20px 20px 0 0;padding:15px 14px calc(14px + env(safe-area-inset-bottom))}.fc-global-comments>header{padding-top:env(safe-area-inset-top)}.fc-global-comment-list{max-height:calc(100svh - 190px)}}
 @media(prefers-reduced-motion:reduce){.fc-global-post-actions button.hearted{animation:none}}
+
+/* Flat, Instagram-style action row: grouped actions left, private save right. */
+.fc-global-post-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0 4px;padding:0;border:0;background:transparent;box-shadow:none}
+.fc-global-post-actions-left{display:flex;align-items:center;gap:clamp(13px,2.2vw,20px);min-width:0}
+.fc-global-post-actions button{flex:none;min-height:42px;padding:0;border:0;border-radius:0;background:transparent;color:#aaa1ae;font-size:13px;font-weight:650;text-decoration:none;white-space:nowrap}
+.fc-global-post-actions-left button{display:inline-flex;align-items:center;justify-content:flex-start;gap:5px}
+.fc-global-post-actions>button:last-child{display:grid;place-items:center;margin-left:auto;width:42px}
+.fc-global-post-actions button:hover,.fc-global-post-actions button:focus,.fc-global-post-actions button:active,.fc-global-post-actions button:visited{text-decoration:none}
+.fc-global-post-actions button:hover{color:#f3edf6;background:transparent}
+.fc-global-post-actions button:focus-visible{outline:0;box-shadow:0 0 0 2px rgba(190,105,255,.55);border-radius:8px}
+@media(max-width:700px){.fc-global-post-actions{gap:8px}.fc-global-post-actions-left{gap:clamp(11px,4vw,18px)}.fc-global-post-actions button{min-height:44px;font-size:13px}.fc-global-post-actions button svg{width:24px;height:24px}.fc-global-post-actions>button:last-child{width:40px}}
