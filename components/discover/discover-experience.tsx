@@ -7,7 +7,7 @@ import {useRouter} from "next/navigation";
 import {DiscoverNavigation} from "./discover-navigation";
 import {FlirtschatLoader} from "@/components/ui/flirtschat-loader";
 import {FlirtschatSkeleton} from "@/components/ui/flirtschat-skeleton";
-import {acceptConnection,declineConnection,getConnectPeople,openConnectionConversation,requestConnection,type ConnectFilter,type ConnectPerson} from "@/lib/connect-service";
+import {acceptConnection,cancelConnectionRequest,declineConnection,getConnectPeople,openConnectionConversation,requestConnection,type ConnectFilter,type ConnectPerson} from "@/lib/connect-service";
 import {createClient} from "@/lib/supabase/client";
 import {useCurrentProfile} from "@/components/profile/current-profile-provider";
 import {ProfileImage} from "@/components/profile-image";
@@ -72,6 +72,11 @@ export function DiscoverExperience(){
     try{await declineConnection(person.connectionId)}catch{updatePerson(person.id,{status:"incoming",connectionId:person.connectionId});setActionError("Could not decline this request. Try again.")}
     finally{lock.current=false;setBusyId(null)}
   };
+  const cancel=async(person:ConnectPerson)=>{
+    if(!person.connectionId||lock.current||busyId)return;lock.current=true;setBusyId(person.id);setActionError("");updatePerson(person.id,{status:"none"});
+    try{await cancelConnectionRequest(person.connectionId);updatePerson(person.id,{connectionId:null})}catch{updatePerson(person.id,{status:"requested"});setActionError("Could not cancel this request. Try again.")}
+    finally{lock.current=false;setBusyId(null)}
+  };
   const openChat=async(person:ConnectPerson)=>{
     if(!person.connectionId||person.status!=="connected"||busyId)return;setBusyId(person.id);setActionError("");
     try{const conversationId=await openConnectionConversation(person.connectionId);router.push(`/chats/${conversationId}`)}catch{setActionError("This conversation is unavailable right now.");setBusyId(null)}
@@ -85,19 +90,19 @@ export function DiscoverExperience(){
       <label className="connect-search"><Search aria-hidden="true"/><input value={search} onChange={event=>setSearch(event.target.value)} placeholder="Search people" aria-label="Search people"/><kbd>⌘ K</kbd></label>
       <div className="connect-filters" role="tablist" aria-label="People filters">{filters.map(item=><button type="button" role="tab" aria-selected={filter===item.id} className={filter===item.id?"active":""} onClick={()=>setFilter(item.id)} key={item.id}>{item.label}</button>)}</div>
       {actionError&&<div className="connect-action-error" role="alert"><span>{actionError}</span><button type="button" onClick={()=>setActionError("")} aria-label="Dismiss error"><X/></button></div>}
-      {loading&&people.length===0?<ConnectSkeleton/>:error&&people.length===0?<div className="connect-empty"><RefreshCcw/><h2>Couldn&apos;t load people</h2><p>{error}</p><button type="button" onClick={()=>void load(true)}><RefreshCcw/>Retry</button></div>:people.length===0?<div className="connect-empty"><UsersRound/><h2>{search?"No people found":"No new people to connect with right now."}</h2><p>Try another filter or check back soon.</p></div>:<div className="connect-list">{people.map(person=><ConnectRow key={person.id} person={person} busy={busyId===person.id} onConnect={()=>void connect(person)} onAccept={()=>void accept(person)} onDecline={()=>void decline(person)} onChat={()=>void openChat(person)}/>)}</div>}
+      {loading&&people.length===0?<ConnectSkeleton/>:error&&people.length===0?<div className="connect-empty"><RefreshCcw/><h2>Couldn&apos;t load people</h2><p>{error}</p><button type="button" onClick={()=>void load(true)}><RefreshCcw/>Retry</button></div>:people.length===0?<div className="connect-empty"><UsersRound/><h2>{search?"No people found":"No new people to connect with right now."}</h2><p>Try another filter or check back soon.</p></div>:<div className="connect-list">{people.map(person=><ConnectRow key={person.id} person={person} busy={busyId===person.id} onConnect={()=>void connect(person)} onAccept={()=>void accept(person)} onDecline={()=>void decline(person)} onCancel={()=>void cancel(person)} onChat={()=>void openChat(person)}/>)}</div>}
       {hasMore&&<button type="button" className="connect-load-more" disabled={loadingMore} onClick={()=>void load(false,before)}>{loadingMore?<><LoaderCircle className="spin"/>Loading more</>:"Show more people"}</button>}
     </section>
   </main>;
 }
 
-function ConnectRow({person,busy,onConnect,onAccept,onDecline,onChat}:{person:ConnectPerson;busy:boolean;onConnect:()=>void;onAccept:()=>void;onDecline:()=>void;onChat:()=>void}){
+function ConnectRow({person,busy,onConnect,onAccept,onDecline,onCancel,onChat}:{person:ConnectPerson;busy:boolean;onConnect:()=>void;onAccept:()=>void;onDecline:()=>void;onCancel:()=>void;onChat:()=>void}){
   const presence=usePresence(person.id);
   return <article className="connect-person-row">
     <Link className="connect-person-main" href={`/profile/${person.id}`} aria-label={`Open ${person.name}'s profile`}>
       <span className="connect-avatar">{person.photoUrl?<ProfileImage src={person.photoUrl} alt={`${person.name}'s profile photo`}/>:<UsersRound aria-hidden="true"/>}<i className={`connect-presence ${presence.online?"online":"offline"}`} aria-label={presence.online?"Online":"Offline"} title={presence.online?"Online":"Offline"}/></span>
       <span className="connect-person-copy"><span className="connect-name">{person.name}{person.age!==null&&<small>, {person.age}</small>}{person.verified&&<BadgeCheck aria-label="Verified"/>}</span><span className="connect-handle">{person.username?`@${person.username}`:"Flirtschat member"}</span><span className="connect-meta">{person.city||person.country||"Around Flirtschat"}</span></span>
     </Link>
-    <div className="connect-row-action">{person.status==="none"&&<button type="button" className="connect-primary" onClick={onConnect} disabled={busy} aria-label={`Connect with ${person.name}`}>{busy?<LoaderCircle className="spin"/>:<><UserPlus/>Connect</>}</button>}{person.status==="requested"&&<span className="connect-status requested"><Clock3/>Requested</span>}{person.status==="incoming"&&<><button type="button" className="connect-primary compact" onClick={onAccept} disabled={busy} aria-label={`Accept connection from ${person.name}`}>{busy?<LoaderCircle className="spin"/>:<><Check/>Accept</>}</button><button type="button" className="connect-secondary" onClick={onDecline} disabled={busy} aria-label={`Decline connection from ${person.name}`}><X/></button></>}{person.status==="connected"&&<><span className="connect-status"><Check/>Connected</span><button type="button" className="connect-chat" onClick={onChat} disabled={busy} aria-label={`Chat with ${person.name}`}>{busy?<LoaderCircle className="spin"/>:<MessageCircle/>}</button></>}</div>
+    <div className="connect-row-action">{person.status==="none"&&<button type="button" className="connect-primary" onClick={onConnect} disabled={busy} aria-label={`Connect with ${person.name}`}>{busy?<LoaderCircle className="spin"/>:<><UserPlus/>Connect</>}</button>}{person.status==="requested"&&<><span className="connect-status requested"><Clock3/>Requested</span><button type="button" className="connect-secondary connect-undo" onClick={onCancel} disabled={busy} aria-label={`Undo request to ${person.name}`}>{busy?<LoaderCircle className="spin"/>:<X/>}</button></>}{person.status==="incoming"&&<><button type="button" className="connect-primary compact" onClick={onAccept} disabled={busy} aria-label={`Accept connection from ${person.name}`}>{busy?<LoaderCircle className="spin"/>:<><Check/>Accept</>}</button><button type="button" className="connect-secondary" onClick={onDecline} disabled={busy} aria-label={`Decline connection from ${person.name}`}><X/></button></>}{person.status==="connected"&&<><span className="connect-status"><Check/>Connected</span><button type="button" className="connect-chat" onClick={onChat} disabled={busy} aria-label={`Chat with ${person.name}`}>{busy?<LoaderCircle className="spin"/>:<MessageCircle/>}</button></>}</div>
   </article>;
 }

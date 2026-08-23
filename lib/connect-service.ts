@@ -17,6 +17,7 @@ export type ConnectPerson = {
   status: ConnectStatus;
 };
 export type ConnectPage = {people: ConnectPerson[]; nextBefore: {createdAt: string; id: string} | null; hasMore: boolean};
+export type ConnectionPerson = Omit<ConnectPerson,"status"|"connectionId"|"createdAt"> & {connectionId:string;status:"requested"|"incoming"|"connected";createdAt:string;requesterId:string};
 
 type ConnectRow = {
   id: string; username: string | null; display_name: string | null; age: number | null;
@@ -30,6 +31,8 @@ const profilePhotoUrl = (objectKey: string | null) => objectKey ? `/api/media/pr
 
 function mapRow(row: ConnectRow): ConnectPerson {
   const status: ConnectStatus = row.connection_status === "accepted" ? "connected" : row.connection_status === "pending" && row.connection_is_requester ? "requested" : row.connection_status === "pending" ? "incoming" : "none";
+  const photoUrl = profilePhotoUrl(row.photo_key);
+  if (process.env.NODE_ENV === "development") console.debug("[ConnectPhoto] row", {photoKeyPresent:Boolean(row.photo_key),photoUrlPresent:Boolean(photoUrl)});
   return {
     id: row.id,
     name: text(row.display_name) || text(row.username) || "Flirtschat member",
@@ -40,7 +43,7 @@ function mapRow(row: ConnectRow): ConnectPerson {
     verified: Boolean(row.verified),
     premium: Boolean(row.premium),
     createdAt: row.created_at,
-    photoUrl: profilePhotoUrl(row.photo_key),
+    photoUrl,
     connectionId: row.connection_id,
     status,
   };
@@ -71,6 +74,10 @@ export async function requestConnection(targetUser: string): Promise<{id: string
   if (!row?.connection_id) throw new Error("Connection request unavailable");
   return {id: String(row.connection_id), status: row.connection_status === "accepted" ? "connected" : "requested"};
 }
+
+export async function cancelConnectionRequest(connectionId:string):Promise<void>{const{error}=await createClient().rpc("fc_cancel_connection_request",{requested_connection:connectionId});if(error)throw error}
+type ConnectionRow={connection_id:string;profile_id:string;username:string|null;display_name:string|null;age:number|null;city:string|null;country:string|null;verified:boolean|null;premium:boolean|null;created_at:string;status:string;requester_id:string;photo_key:string|null};
+export async function getMyConnections():Promise<ConnectionPerson[]>{const{data,error}=await createClient().rpc("fc_my_connections");if(error)throw error;return((data??[])as ConnectionRow[]).map(row=>({id:row.profile_id,name:text(row.display_name)||text(row.username)||"Flirtschat member",username:text(row.username)||null,age:row.age,city:text(row.city),country:text(row.country),verified:Boolean(row.verified),premium:Boolean(row.premium),createdAt:row.created_at,photoUrl:profilePhotoUrl(row.photo_key),connectionId:row.connection_id,status:row.status==="accepted"?"connected":row.requester_id===row.profile_id?"incoming":"requested",requesterId:row.requester_id}))}
 
 export async function acceptConnection(connectionId: string): Promise<void> {
   const {error} = await createClient().rpc("fc_accept_connection", {requested_connection: connectionId});
