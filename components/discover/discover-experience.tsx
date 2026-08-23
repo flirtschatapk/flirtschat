@@ -79,7 +79,7 @@ export function DiscoverExperience(){
   };
   const openChat=async(person:ConnectPerson)=>{
     if(!person.connectionId||person.status!=="connected"||busyId)return;setBusyId(person.id);setActionError("");
-    try{const conversationId=await openConnectionConversation(person.connectionId);router.push(`/chats/${conversationId}`)}catch{setActionError("This conversation is unavailable right now.");setBusyId(null)}
+    try{const conversationId=await openConnectionConversation(person.connectionId);if(process.env.NODE_ENV==="development")console.debug("[ConnectChatFlow]",{stage:"navigation-start",connectionId:person.connectionId,conversationId,authUserPresent:Boolean(user?.id),path:window.location.pathname});router.push(`/chats/${conversationId}`)}catch(error){if(process.env.NODE_ENV==="development")console.error("[ConnectChatFailure]",{stage:"open-chat",connectionId:person.connectionId,authUserPresent:Boolean(user?.id),path:window.location.pathname,errorCode:typeof error==="object"&&error&&"code"in error?String(error.code):null,errorMessage:error instanceof Error?error.message:"Conversation unavailable"});setActionError("This conversation is unavailable right now.");setBusyId(null)}
   };
 
   if(!user?.id)return <FlirtschatLoader context="discovery"/>;

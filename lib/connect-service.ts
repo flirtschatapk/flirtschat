@@ -90,8 +90,27 @@ export async function declineConnection(connectionId: string): Promise<void> {
 }
 
 export async function openConnectionConversation(connectionId: string): Promise<string> {
-  const {data, error} = await createClient().rpc("fc_get_or_create_connection_conversation", {requested_connection: connectionId});
-  if (error) throw error;
-  if (typeof data !== "string" || !data) throw new Error("Conversation unavailable");
+  const supabase = createClient();
+  const path = typeof window === "undefined" ? undefined : window.location.pathname;
+  const trace = (stage: string, details: Record<string, unknown> = {}) => {
+    if (process.env.NODE_ENV === "development") console.debug("[ConnectChatFlow]", {stage, connectionId, path, ...details});
+  };
+  const {data: userData, error: userError} = await supabase.auth.getUser();
+  trace("auth-ready", {authUserPresent: Boolean(userData.user), errorCode: userError?.code ?? null});
+  if (userError || !userData.user) {
+    trace("auth-unavailable", {authUserPresent: false, errorCode: userError?.code ?? null, errorMessage: userError?.message ?? "No authenticated user"});
+    throw new Error("Conversation unavailable");
+  }
+  trace("rpc-start", {authUserPresent: true});
+  const {data, error} = await supabase.rpc("fc_get_or_create_connection_conversation", {requested_connection: connectionId});
+  if (error) {
+    trace("rpc-error", {authUserPresent: true, errorCode: error.code ?? null, errorMessage: error.message ?? "RPC failed"});
+    throw error;
+  }
+  if (typeof data !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(data)) {
+    trace("invalid-conversation-result", {authUserPresent: true});
+    throw new Error("Conversation unavailable");
+  }
+  trace("rpc-success", {authUserPresent: true, conversationId: data});
   return data;
 }
