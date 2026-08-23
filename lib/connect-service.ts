@@ -26,6 +26,7 @@ type ConnectRow = {
 };
 
 const text = (value: string | null) => value?.trim() || "";
+const profilePhotoUrl = (objectKey: string | null) => objectKey ? `/api/media/profile-photo?key=${encodeURIComponent(objectKey)}` : null;
 
 function mapRow(row: ConnectRow): ConnectPerson {
   const status: ConnectStatus = row.connection_status === "accepted" ? "connected" : row.connection_status === "pending" && row.connection_is_requester ? "requested" : row.connection_status === "pending" ? "incoming" : "none";
@@ -39,7 +40,7 @@ function mapRow(row: ConnectRow): ConnectPerson {
     verified: Boolean(row.verified),
     premium: Boolean(row.premium),
     createdAt: row.created_at,
-    photoUrl: row.photo_key ? `/api/media/profile-photo?key=${encodeURIComponent(row.photo_key)}` : null,
+    photoUrl: profilePhotoUrl(row.photo_key),
     connectionId: row.connection_id,
     status,
   };

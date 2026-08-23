@@ -5,13 +5,13 @@ import {createContext,useCallback,useContext,useEffect,useMemo,useRef,useState} 
 import {createClient} from "@/lib/supabase/client";
 
 type PresenceValue={online:boolean;lastSeen:string|null};
-type WatchedChannel={channel:RealtimeChannel;references:number;graceTimer:number|null;lastHeartbeat:string|null};
+type WatchedChannel={references:number;graceTimer:number|null;lastHeartbeat:string|null};
 type PresenceContextValue={currentUserId:string|null;statuses:Record<string,PresenceValue>;now:number;watch:(userId:string)=>()=>void};
 
 const PresenceContext=createContext<PresenceContextValue|null>(null);
 const HEARTBEAT_MS=30_000;
 const OFFLINE_GRACE_MS=90_000;
-const topic=(userId:string)=>`presence:user:${userId}`;
+const topic="presence:global";
 const payload=(user:User)=>({user_id:user.id,last_seen:new Date().toISOString(),connected_at:new Date().toISOString(),platform:typeof navigator==="undefined"?"web":/Android|iPhone|iPad/i.test(navigator.userAgent)?"mobile-web":"desktop-web",page:typeof location==="undefined"?"/":location.pathname});
 
 export function PresenceProvider({children}:{children:React.ReactNode}){
@@ -67,11 +67,26 @@ export function PresenceProvider({children}:{children:React.ReactNode}){
     if(item.graceTimer!==null)return;
     item.graceTimer=window.setTimeout(()=>{
       item.graceTimer=null;
-      const entries=item.channel.presenceState()[userId]??[];
+      const entries=ownChannel.current?.presenceState()[userId]??[];
       if(entries.length)return;
       setStatus(userId,{online:false,lastSeen:item.lastHeartbeat});
     },OFFLINE_GRACE_MS);
   },[markOffline,setStatus]);
+
+  const syncWatched=useCallback(()=>{
+    const channel=ownChannel.current;
+    if(!channel)return;
+    const state=channel.presenceState();
+    watched.current.forEach((item,userId)=>{
+      const entries=(state[userId]??[])as Array<{last_seen?:unknown}>;
+      const latest=entries.map(entry=>typeof entry.last_seen==="string"?entry.last_seen:null).find(Boolean)??null;
+      if(entries.length){
+        clearGrace(item);
+        item.lastHeartbeat=latest;
+        setStatus(userId,{online:true,lastSeen:null});
+      }else scheduleOffline(userId,item);
+    });
+  },[clearGrace,scheduleOffline,setStatus]);
 
   const leave=useCallback((sessionEnded=false)=>{
     stopHeartbeat();
@@ -88,15 +103,17 @@ export function PresenceProvider({children}:{children:React.ReactNode}){
     leave(false);
     userRef.current=user;
     setCurrentUserId(user.id);
-    const channel=supabase.channel(topic(user.id),{config:{presence:{key:user.id}}});
+    const channel=supabase.channel(topic,{config:{presence:{key:user.id}}});
     ownChannel.current=channel;
-    channel.on("presence",{event:"sync"},()=>{
-      const entries=channel.presenceState()[user.id]??[];
-      if(entries.length)setStatus(user.id,{online:true,lastSeen:null});
-    }).subscribe(status=>{
+    channel.on("presence",{event:"sync"},syncWatched)
+      .on("presence",{event:"join"},syncWatched)
+      .on("presence",{event:"leave"},syncWatched)
+      .on("broadcast",{event:"session-ended"},({payload:message})=>{
+        if(message?.user_id){const item=watched.current.get(message.user_id);if(item)markOffline(message.user_id,item)}
+      }).subscribe(status=>{
       if(status==="SUBSCRIBED")startHeartbeat();
     });
-  },[leave,setStatus,startHeartbeat,supabase]);
+  },[leave,markOffline,startHeartbeat,supabase,syncWatched]);
 
   useEffect(()=>{
     const watchedChannels=watched.current;
@@ -112,7 +129,6 @@ export function PresenceProvider({children}:{children:React.ReactNode}){
       leave(false);
       for(const item of watchedChannels.values()){
         clearGrace(item);
-        void supabase.removeChannel(item.channel);
       }
       watchedChannels.clear();
     };
@@ -125,35 +141,17 @@ export function PresenceProvider({children}:{children:React.ReactNode}){
       existing.references++;
       return()=>{
         existing.references=Math.max(0,existing.references-1);
-        if(existing.references===0){clearGrace(existing);void supabase.removeChannel(existing.channel);watched.current.delete(userId)}
+        if(existing.references===0){clearGrace(existing);watched.current.delete(userId);setStatus(userId,{online:false,lastSeen:null})}
       };
     }
-    const channel=supabase.channel(topic(userId));
-    const item:WatchedChannel={channel,references:1,graceTimer:null,lastHeartbeat:null};
+    const item:WatchedChannel={references:1,graceTimer:null,lastHeartbeat:null};
     watched.current.set(userId,item);
-    const sync=()=>{
-      const entries=(channel.presenceState()[userId]??[])as Array<{last_seen?:unknown}>;
-      const latest=entries.map(entry=>typeof entry.last_seen==="string"?entry.last_seen:null).find(Boolean)??null;
-      if(entries.length){
-        clearGrace(item);
-        item.lastHeartbeat=latest;
-        setStatus(userId,{online:true,lastSeen:null});
-      }else scheduleOffline(userId,item);
-    };
-    channel.on("presence",{event:"sync"},sync)
-      .on("presence",{event:"leave"},sync)
-      .on("broadcast",{event:"session-ended"},({payload:message})=>{
-        if(message?.user_id===userId)markOffline(userId,item);
-      })
-      .subscribe(status=>{
-        if(status==="SUBSCRIBED")sync();
-        else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED")scheduleOffline(userId,item);
-      });
+    syncWatched();
     return()=>{
       item.references=Math.max(0,item.references-1);
-      if(item.references===0){clearGrace(item);void supabase.removeChannel(channel);watched.current.delete(userId)}
+      if(item.references===0){clearGrace(item);watched.current.delete(userId);setStatus(userId,{online:false,lastSeen:null})}
     };
-  },[clearGrace,markOffline,scheduleOffline,setStatus,supabase]);
+  },[clearGrace,setStatus,syncWatched]);
 
   const value=useMemo(()=>({currentUserId,statuses,now,watch}),[currentUserId,statuses,now,watch]);
   return <PresenceContext.Provider value={value}>{children}</PresenceContext.Provider>;

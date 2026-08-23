@@ -11,6 +11,7 @@ import {acceptConnection,declineConnection,getConnectPeople,openConnectionConver
 import {createClient} from "@/lib/supabase/client";
 import {useCurrentProfile} from "@/components/profile/current-profile-provider";
 import {ProfileImage} from "@/components/profile-image";
+import {usePresence} from "@/components/presence/presence-provider";
 
 const filters: {id: ConnectFilter; label: string}[] = [
   {id:"for_you",label:"For You"},{id:"nearby",label:"Nearby"},{id:"new",label:"New"},{id:"verified",label:"Verified"},
@@ -91,9 +92,10 @@ export function DiscoverExperience(){
 }
 
 function ConnectRow({person,busy,onConnect,onAccept,onDecline,onChat}:{person:ConnectPerson;busy:boolean;onConnect:()=>void;onAccept:()=>void;onDecline:()=>void;onChat:()=>void}){
+  const presence=usePresence(person.id);
   return <article className="connect-person-row">
     <Link className="connect-person-main" href={`/profile/${person.id}`} aria-label={`Open ${person.name}'s profile`}>
-      <span className="connect-avatar">{person.photoUrl?<ProfileImage src={person.photoUrl} alt=""/>:<UsersRound aria-hidden="true"/>}</span>
+      <span className="connect-avatar">{person.photoUrl?<ProfileImage src={person.photoUrl} alt={`${person.name}'s profile photo`}/>:<UsersRound aria-hidden="true"/>}<i className={`connect-presence ${presence.online?"online":"offline"}`} aria-label={presence.online?"Online":"Offline"} title={presence.online?"Online":"Offline"}/></span>
       <span className="connect-person-copy"><span className="connect-name">{person.name}{person.age!==null&&<small>, {person.age}</small>}{person.verified&&<BadgeCheck aria-label="Verified"/>}</span><span className="connect-handle">{person.username?`@${person.username}`:"Flirtschat member"}</span><span className="connect-meta">{person.city||person.country||"Around Flirtschat"}</span></span>
     </Link>
     <div className="connect-row-action">{person.status==="none"&&<button type="button" className="connect-primary" onClick={onConnect} disabled={busy} aria-label={`Connect with ${person.name}`}>{busy?<LoaderCircle className="spin"/>:<><UserPlus/>Connect</>}</button>}{person.status==="requested"&&<span className="connect-status requested"><Clock3/>Requested</span>}{person.status==="incoming"&&<><button type="button" className="connect-primary compact" onClick={onAccept} disabled={busy} aria-label={`Accept connection from ${person.name}`}>{busy?<LoaderCircle className="spin"/>:<><Check/>Accept</>}</button><button type="button" className="connect-secondary" onClick={onDecline} disabled={busy} aria-label={`Decline connection from ${person.name}`}><X/></button></>}{person.status==="connected"&&<><span className="connect-status"><Check/>Connected</span><button type="button" className="connect-chat" onClick={onChat} disabled={busy} aria-label={`Chat with ${person.name}`}>{busy?<LoaderCircle className="spin"/>:<MessageCircle/>}</button></>}</div>
