@@ -1,10 +1,10 @@
-import {GalleryHorizontalEnd, Globe2, Heart, MessageCircle, Settings} from "lucide-react";
+import {Globe2, Heart, MessageCircle, Settings, UsersRound} from "lucide-react";
 import {ChatUnreadBadge} from "@/components/chat/chat-unread-badge";
 
-type NavItem = "global" | "swipe" | "matches" | "chat" | "settings";
+type NavItem = "global" | "connect" | "matches" | "chat" | "settings";
 const items: {id:NavItem;label:string;href:string;icon:React.ReactNode}[] = [
   {id:"global",label:"Global",href:"/dashboard",icon:<Globe2/>},
-  {id:"swipe",label:"Swipe",href:"/discover",icon:<GalleryHorizontalEnd/>},
+  {id:"connect",label:"Connect",href:"/discover",icon:<UsersRound/>},
   {id:"chat",label:"Chats",href:"/chats",icon:<MessageCircle/>},
   {id:"matches",label:"Matches",href:"/matches",icon:<Heart/>},
   {id:"settings",label:"Settings",href:"/settings",icon:<Settings/>},

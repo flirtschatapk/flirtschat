@@ -36,16 +36,9 @@
 @import "./profile-like-sync.css";
 @import "./profile-no-lines.css";
 @import "./profile-full-details.css";
-@import "./rewind-button.css";
 .global-card-presence,.match-person-avatar>i,.fc-list-avatar>i{background:#7a7a84;transition:background-color .25s ease,box-shadow .25s ease,opacity .25s ease}.global-card-presence.online,.match-person-avatar>i.online,.fc-list-avatar>i.online{background:#00e676!important;box-shadow:0 0 10px rgba(0,230,118,.55)}
-@import "./metallic-actions.css";
-@import "./discover-entitlements.css";
 @import "./no-background-decorations.css";
 @import "./global-card-copy-position.css";
-@import "./swipe-global-card.css";
-@import "./discover-clean-controls.css";
-@import "./discover-auth-brand.css";
-@import "./animated-tab-rings.css";
 @import "./global-tabs-transparent.css";
 @import "./horizontal-tab-scroll.css";
 @import "./match-functional.css";
@@ -59,13 +52,12 @@
 @import "./chat-message-clean.css";
 @import "./verified-status.css";
 @import "./premium-packages.css";
-@import "./discover-desktop-actions.css";
 @import "./onboarding-dating.css";
 @import "./dashboard-production.css";
 @import "./discover-unified-header.css";
 @import "./chat-mobile-unified.css";
 @import "./global-profile-card-restore.css";
-@import "./swipe-global-header.css";
+@import "./connect-page.css";
 @import "./matches.css";
 @import "./matches-modern-header.css";
 @import "./matches-responsive-list.css";

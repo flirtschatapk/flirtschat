@@ -1,169 +1,101 @@
 "use client";
 
-import {LoaderCircle} from "lucide-react";
-import {useCallback, useEffect, useMemo, useRef, useState} from "react";
-import {ActionButtons, type DiscoverAction} from "./action-buttons";
-import {DiscoverEmptyState} from "./discover-empty-state";
-import {DiscoverFilter} from "./discover-filter";
+import {BadgeCheck,Check,Clock3,LoaderCircle,MessageCircle,RefreshCcw,Search,UserPlus,UsersRound,X} from "lucide-react";
+import {useCallback,useEffect,useRef,useState} from "react";
+import Link from "next/link";
+import {useRouter} from "next/navigation";
 import {DiscoverNavigation} from "./discover-navigation";
-import {DiscoverTabs} from "./discover-tabs";
-import {MatchModal} from "./match-modal";
-import {ProfileCardSkeleton} from "./profile-card-skeleton";
-import {ResponsiveProfileGallery} from "./responsive-profile-gallery";
-import {ProfileDetailsSheet} from "./profile-details-sheet";
-import {boostProfile, dislikeProfile, getDiscoveryActionState, getProfiles, likeProfile, rewindProfile, superLikeProfile, type DiscoveryActionState} from "@/lib/discover-service";
-import type {DailyDiscoverQuota} from "@/lib/discover-entitlements";
-import {defaultDiscoverFilters, type DiscoverFilters, type DiscoverProfile, type DiscoverTab} from "@/lib/discover-types";
-import {DISCOVER_PREFERENCES_EVENT,DISCOVER_PREFERENCES_KEY,loadDiscoverPreferences,saveDiscoverPreferences} from "@/lib/discover-preferences";
-import {createClient} from "@/lib/supabase/client";
-import {subscribeToPublicProfileUpdates} from "@/lib/public-profile-realtime";
-import {useCurrentProfile} from "@/components/profile/current-profile-provider";
-import {getUserCache,setUserCache} from "@/lib/app-cache";
 import {FlirtschatLoader} from "@/components/ui/flirtschat-loader";
+import {FlirtschatSkeleton} from "@/components/ui/flirtschat-skeleton";
+import {acceptConnection,declineConnection,getConnectPeople,openConnectionConversation,requestConnection,type ConnectFilter,type ConnectPerson} from "@/lib/connect-service";
+import {createClient} from "@/lib/supabase/client";
+import {useCurrentProfile} from "@/components/profile/current-profile-provider";
+import {ProfileImage} from "@/components/profile-image";
 
-export function DiscoverExperience() {
-  const{user}=useCurrentProfile();
-  const lock = useRef(false);
-  const profilesRef=useRef<DiscoverProfile[]>([]);
-  const [ready, setReady] = useState(false);
-  const [profiles, setProfiles] = useState<DiscoverProfile[]>([]);
-  const [index, setIndex] = useState(0);
-  const [tab, setTab] = useState<DiscoverTab>("discover");
-  const [filters, setFilters] = useState<DiscoverFilters>(defaultDiscoverFilters);
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [details, setDetails] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(false);
-  const [match, setMatch] = useState<DiscoverProfile | null>(null);
-  const [direction, setDirection] = useState({x: 0, y: 0});
-  const [premium, setPremium] = useState(false);
-  const [quota, setQuota] = useState<DailyDiscoverQuota>();
-  const [limitNotice, setLimitNotice] = useState("");
-  const [actionState,setActionState]=useState<DiscoveryActionState|null>(null);
-  const [now,setNow]=useState(()=>Date.now());
-  const active = profiles[index];
-  const cacheScope=useMemo(()=>`discovery:${tab}:${JSON.stringify(filters)}`,[filters,tab]);
-  const syncActionState=useCallback(async()=>{try{const state=await getDiscoveryActionState();setActionState(state);setPremium(state.premium);setQuota({date:new Date().toLocaleDateString("en-CA"),rewind:state.rewindsRemaining,superlike:state.superLikesRemaining})}catch{setLimitNotice("We couldn't load your swipe limits. Try again.")}},[]);
+const filters: {id: ConnectFilter; label: string}[] = [
+  {id:"for_you",label:"For You"},{id:"nearby",label:"Nearby"},{id:"new",label:"New"},{id:"verified",label:"Verified"},
+];
 
-  const load = useCallback(async () => {
-    setBusy(true);
-    setError(false);
-    const cached=user?.id?getUserCache<{profiles:DiscoverProfile[];index:number}>(user.id,cacheScope,60000):undefined;
-    if(cached){setProfiles(cached.profiles);setIndex(Math.min(cached.index,Math.max(0,cached.profiles.length-1)));setBusy(false)}
-    try {
-      const next=await getProfiles(tab, filters);
-      setUserCache(user?.id,cacheScope,{profiles:next,index:0});
-      setProfiles(next);
-      setIndex(0);
-    } catch {
-      setError(true);
-    } finally {
-      setBusy(false);
-    }
-  }, [cacheScope,filters,tab,user?.id]);
+function ConnectSkeleton(){return <div className="connect-list-skeleton"><FlirtschatSkeleton variant="matches"/></div>}
 
-  useEffect(()=>{if(!user?.id)return;const cached=getUserCache<{profiles:DiscoverProfile[];index:number}>(user.id,cacheScope,60000);if(cached){setProfiles(cached.profiles);setIndex(Math.min(cached.index,Math.max(0,cached.profiles.length-1)));setBusy(false)}},[cacheScope,user?.id]);
+export function DiscoverExperience(){
+  const {user}=useCurrentProfile();
+  const router=useRouter();
+  const lock=useRef(false);
+  const [people,setPeople]=useState<ConnectPerson[]>([]);
+  const [filter,setFilter]=useState<ConnectFilter>("for_you");
+  const [search,setSearch]=useState("");
+  const [loading,setLoading]=useState(true);
+  const [loadingMore,setLoadingMore]=useState(false);
+  const [hasMore,setHasMore]=useState(false);
+  const [before,setBefore]=useState<{createdAt:string;id:string}|null>(null);
+  const [error,setError]=useState("");
+  const [actionError,setActionError]=useState("");
+  const [busyId,setBusyId]=useState<string|null>(null);
 
-  useEffect(() => {
-    setFilters(loadDiscoverPreferences());
-    setReady(true);
-    void syncActionState();
-  }, [syncActionState]);
+  const load=useCallback(async(reset=true,cursor:{createdAt:string;id:string}|null=null)=>{
+    if(!user?.id)return;
+    if(reset){setLoading(true);setBefore(null)}else setLoadingMore(true);
+    setError("");
+    try{
+      const page=await getConnectPeople(filter,search,reset?null:cursor);
+      setPeople(current=>reset?page.people:[...current,...page.people.filter(next=>!current.some(existing=>existing.id===next.id))]);
+      setHasMore(page.hasMore);setBefore(page.nextBefore);
+    }catch{setError("We couldn't load people right now.")}
+    finally{setLoading(false);setLoadingMore(false)}
+  },[filter,search,user?.id]);
 
-  useEffect(()=>{profilesRef.current=profiles},[profiles]);
-  useEffect(()=>{if(user?.id&&profiles.length)setUserCache(user.id,cacheScope,{profiles,index})},[cacheScope,index,profiles,user?.id]);
+  useEffect(()=>{const timer=window.setTimeout(()=>void load(true),search?220:0);return()=>window.clearTimeout(timer)},[filter,load,search,user?.id]);
+  useEffect(()=>{
+    if(!user?.id)return;
+    const supabase=createClient();
+    const channel=supabase.channel(`connect-relationships-${user.id}`).on("postgres_changes",{event:"*",schema:"public",table:"fc_connections"},()=>void load(true)).subscribe();
+    return()=>{void supabase.removeChannel(channel)};
+  },[load,user?.id]);
 
-  useEffect(() => {
-    if (ready) void load();
-  }, [ready, load]);
+  const updatePerson=(id:string,changes:Partial<ConnectPerson>)=>setPeople(current=>current.map(person=>person.id===id?{...person,...changes}:person));
+  const connect=async(person:ConnectPerson)=>{
+    if(lock.current||busyId)return;lock.current=true;setBusyId(person.id);setActionError("");
+    const previous={status:person.status,connectionId:person.connectionId};updatePerson(person.id,{status:"requested"});
+    try{const result=await requestConnection(person.id);updatePerson(person.id,{status:result.status,connectionId:result.id})}
+    catch{updatePerson(person.id,previous);setActionError("Could not send the connection request. Try again.")}
+    finally{lock.current=false;setBusyId(null)}
+  };
+  const accept=async(person:ConnectPerson)=>{
+    if(!person.connectionId||lock.current||busyId)return;lock.current=true;setBusyId(person.id);setActionError("");updatePerson(person.id,{status:"connected"});
+    try{await acceptConnection(person.connectionId)}catch{updatePerson(person.id,{status:"incoming"});setActionError("Could not accept this request. Try again.")}
+    finally{lock.current=false;setBusyId(null)}
+  };
+  const decline=async(person:ConnectPerson)=>{
+    if(!person.connectionId||lock.current||busyId)return;lock.current=true;setBusyId(person.id);setActionError("");updatePerson(person.id,{status:"none",connectionId:null});
+    try{await declineConnection(person.connectionId)}catch{updatePerson(person.id,{status:"incoming",connectionId:person.connectionId});setActionError("Could not decline this request. Try again.")}
+    finally{lock.current=false;setBusyId(null)}
+  };
+  const openChat=async(person:ConnectPerson)=>{
+    if(!person.connectionId||person.status!=="connected"||busyId)return;setBusyId(person.id);setActionError("");
+    try{const conversationId=await openConnectionConversation(person.connectionId);router.push(`/chats/${conversationId}`)}catch{setActionError("This conversation is unavailable right now.");setBusyId(null)}
+  };
 
-  useEffect(()=>{if(!ready)return;return subscribeToPublicProfileUpdates(()=>void load())},[load,ready]);
-
-  useEffect(()=>{const timer=window.setInterval(()=>setNow(Date.now()),1000);return()=>window.clearInterval(timer)},[]);
-
-  useEffect(()=>{if(!ready)return;const supabase=createClient();let channel:ReturnType<typeof supabase.channel>|null=null;void supabase.auth.getUser().then(({data})=>{if(!data.user)return;const userId=data.user.id;channel=supabase.channel(`discovery-actions-${userId}`).on("postgres_changes",{event:"INSERT",schema:"public",table:"fc_matches"},payload=>{const row=payload.new as {user_a?:string;user_b?:string},other=row.user_a===userId?row.user_b:row.user_b===userId?row.user_a:null;if(other){const profile=profilesRef.current.find(item=>item.id===other);if(profile)setMatch(profile)}void syncActionState()}).on("postgres_changes",{event:"*",schema:"public",table:"fc_profile_boosts",filter:`user_id=eq.${userId}`},()=>void syncActionState()).subscribe()});return()=>{if(channel)void supabase.removeChannel(channel)}},[ready,syncActionState]);
-
-  useEffect(() => {
-    const syncPreferences = () => setFilters(loadDiscoverPreferences());
-    const storage = (event: StorageEvent) => { if (event.key === DISCOVER_PREFERENCES_KEY) syncPreferences(); };
-    window.addEventListener(DISCOVER_PREFERENCES_EVENT, syncPreferences);
-    window.addEventListener("storage", storage);
-    return () => { window.removeEventListener(DISCOVER_PREFERENCES_EVENT, syncPreferences); window.removeEventListener("storage", storage); };
-  }, []);
-
-  const action = useCallback(async (kind: DiscoverAction, targetIndex = index) => {
-    const target = profiles[targetIndex];
-    if(lock.current)return;
-    if(kind!=="rewind"&&kind!=="boost"&&!target)return;
-    lock.current = true;
-    setBusy(true);
-    setLimitNotice("");
-    const originalProfiles=profiles,originalIndex=index;
-    try {
-      if (kind === "rewind") {
-        if(!actionState?.canRewind){setLimitNotice("No eligible swipe is available to rewind.");return}
-        const result=await rewindProfile(),available=await getProfiles(tab,filters),restored=available.find(item=>item.id===result.profileId);
-        if(restored){setProfiles(current=>[restored,...current.filter(item=>item.id!==restored.id)]);setIndex(0)}
-        await syncActionState();
-        return;
-      }
-      if (kind === "boost") {
-        const result=await boostProfile();
-        setActionState(current=>current?{...current,boostStartedAt:result.startedAt,boostExpiresAt:result.expiresAt,boostCooldownUntil:result.cooldownUntil}:current);
-        return;
-      }
-      if(!target)return;
-      setDirection(kind==="dislike"?{x:-700,y:0}:kind==="superlike"?{x:0,y:-700}:{x:700,y:0});
-      setProfiles(current=>current.filter(profile=>profile.id!==target.id));
-      setIndex(current=>Math.min(current,Math.max(0,profiles.length-2)));
-      if (kind === "like") {
-        const result = await likeProfile(target.id);
-        if(result.matched)setMatch(target);
-      }
-      if(kind==="dislike")await dislikeProfile(target.id);
-      if(kind==="superlike"){const result=await superLikeProfile(target.id);if(result.matched)setMatch(target)}
-      await syncActionState();
-    } catch(reason) {
-      setProfiles(originalProfiles);setIndex(originalIndex);setDirection({x:0,y:0});
-      const message=reason instanceof Error?reason.message:typeof reason==="object"&&reason&&"message" in reason?String(reason.message):"";
-      setLimitNotice(message.includes("SUPER_LIKE_LIMIT")?"Your free daily Super Like is used. Premium gives unlimited access.":message.includes("REWIND_LIMIT")?"Your free daily Rewind is used. Premium gives unlimited access.":message.includes("BOOST_PREMIUM_REQUIRED")?"Boost is a Premium feature.":message.includes("BOOST_COOLDOWN")?"Boost is cooling down. Try again when the timer ends.":message.includes("NO_REWIND_AVAILABLE")?"No eligible swipe is available to rewind.":"Your action couldn't be saved. Check your connection and try again.");
-      await syncActionState();
-    } finally {
-      setBusy(false);
-      lock.current=false;
-    }
-  }, [actionState?.canRewind,filters,index,profiles,syncActionState,tab]);
-
-  useEffect(() => {
-    const key = (event: KeyboardEvent) => {
-      if (details || filterOpen || match) return;
-      if (event.key === "ArrowLeft") { event.preventDefault(); void action("dislike"); }
-      if (event.key === "ArrowRight") { event.preventDefault(); void action("like"); }
-      if (event.key === "ArrowUp") { event.preventDefault(); void action("superlike"); }
-    };
-    window.addEventListener("keydown", key);
-    return () => window.removeEventListener("keydown", key);
-  }, [action, details, filterOpen, match]);
-
-  if (!ready) return <FlirtschatLoader context="discovery"/>;
-
-  return <main className="discover-page discover-page-v2">
+  if(!user?.id)return <FlirtschatLoader context="discovery"/>;
+  return <main className="connect-page">
     <DiscoverNavigation/>
-    <div className="discover-shell">
-      <div className="discover-unified-header discover-swipes-header"><DiscoverTabs value={tab} onChange={setTab}/></div>
-      <section className="discover-stage" aria-live="polite">
-        {busy && profiles.length === 0 ? <ProfileCardSkeleton/> : error ? <DiscoverEmptyState type="error" onRetry={() => void load()}/> : !active ? <DiscoverEmptyState onRetry={() => void load()}/> : <>
-          <ResponsiveProfileGallery profiles={profiles} index={index} busy={busy} direction={direction} onOpen={selectedIndex => { setIndex(selectedIndex); setDetails(true); }} onSwipe={nextAction => void action(nextAction)} renderDesktopActions={selectedIndex => <ActionButtons disabled={busy} premium={premium} quota={quota} canRewind={Boolean(actionState?.canRewind)} onAction={nextAction => void action(nextAction, selectedIndex)}/>} />
-          <div className="discover-mobile-actions"><ActionButtons disabled={busy} premium={premium} quota={quota} canRewind={Boolean(actionState?.canRewind)} onAction={nextAction => void action(nextAction)}/></div>
-          {busy && <span className="next-loading"><LoaderCircle className="spin"/>Loading next profile</span>}
-        </>}
-      </section>
-    </div>
-    {!limitNotice&&actionState?.boostExpiresAt&&new Date(actionState.boostExpiresAt).getTime()>now&&<div className="discover-limit-notice" role="status"><span>Boost active · {Math.max(0,Math.ceil((new Date(actionState.boostExpiresAt).getTime()-now)/60000))} min remaining</span></div>}
-    {!limitNotice&&actionState?.boostExpiresAt&&actionState.boostCooldownUntil&&new Date(actionState.boostExpiresAt).getTime()<=now&&new Date(actionState.boostCooldownUntil).getTime()>now&&<div className="discover-limit-notice" role="status"><span>Boost cooldown · {Math.max(1,Math.ceil((new Date(actionState.boostCooldownUntil).getTime()-now)/60000))} min remaining</span></div>}
-    {limitNotice && <div className="discover-limit-notice" role="alert"><span>{limitNotice}</span>{limitNotice.includes("Premium") && <a href="/premium">Get Premium</a>}<button type="button" onClick={() => setLimitNotice("")} aria-label="Dismiss">×</button></div>}
-    <DiscoverFilter open={filterOpen} value={filters} onClose={() => setFilterOpen(false)} onApply={value=>{setFilters(value);saveDiscoverPreferences(value)}}/>
-    <ProfileDetailsSheet profile={active ?? null} open={details} onClose={() => setDetails(false)}/>
-    <MatchModal profile={match} onClose={() => setMatch(null)}/>
+    <section className="connect-shell" aria-labelledby="connect-title">
+      <header className="connect-heading"><div><span className="connect-eyebrow">Meet people</span><h1 id="connect-title">Connect</h1></div><UsersRound aria-hidden="true"/></header>
+      <label className="connect-search"><Search aria-hidden="true"/><input value={search} onChange={event=>setSearch(event.target.value)} placeholder="Search people" aria-label="Search people"/><kbd>⌘ K</kbd></label>
+      <div className="connect-filters" role="tablist" aria-label="People filters">{filters.map(item=><button type="button" role="tab" aria-selected={filter===item.id} className={filter===item.id?"active":""} onClick={()=>setFilter(item.id)} key={item.id}>{item.label}</button>)}</div>
+      {actionError&&<div className="connect-action-error" role="alert"><span>{actionError}</span><button type="button" onClick={()=>setActionError("")} aria-label="Dismiss error"><X/></button></div>}
+      {loading&&people.length===0?<ConnectSkeleton/>:error&&people.length===0?<div className="connect-empty"><RefreshCcw/><h2>Couldn&apos;t load people</h2><p>{error}</p><button type="button" onClick={()=>void load(true)}><RefreshCcw/>Retry</button></div>:people.length===0?<div className="connect-empty"><UsersRound/><h2>{search?"No people found":"No new people to connect with right now."}</h2><p>Try another filter or check back soon.</p></div>:<div className="connect-list">{people.map(person=><ConnectRow key={person.id} person={person} busy={busyId===person.id} onConnect={()=>void connect(person)} onAccept={()=>void accept(person)} onDecline={()=>void decline(person)} onChat={()=>void openChat(person)}/>)}</div>}
+      {hasMore&&<button type="button" className="connect-load-more" disabled={loadingMore} onClick={()=>void load(false,before)}>{loadingMore?<><LoaderCircle className="spin"/>Loading more</>:"Show more people"}</button>}
+    </section>
   </main>;
+}
+
+function ConnectRow({person,busy,onConnect,onAccept,onDecline,onChat}:{person:ConnectPerson;busy:boolean;onConnect:()=>void;onAccept:()=>void;onDecline:()=>void;onChat:()=>void}){
+  return <article className="connect-person-row">
+    <Link className="connect-person-main" href={`/profile/${person.id}`} aria-label={`Open ${person.name}'s profile`}>
+      <span className="connect-avatar">{person.photoUrl?<ProfileImage src={person.photoUrl} alt=""/>:<UsersRound aria-hidden="true"/>}</span>
+      <span className="connect-person-copy"><span className="connect-name">{person.name}{person.age!==null&&<small>, {person.age}</small>}{person.verified&&<BadgeCheck aria-label="Verified"/>}</span><span className="connect-handle">{person.username?`@${person.username}`:"Flirtschat member"}</span><span className="connect-meta">{person.city||person.country||"Around Flirtschat"}</span></span>
+    </Link>
+    <div className="connect-row-action">{person.status==="none"&&<button type="button" className="connect-primary" onClick={onConnect} disabled={busy} aria-label={`Connect with ${person.name}`}>{busy?<LoaderCircle className="spin"/>:<><UserPlus/>Connect</>}</button>}{person.status==="requested"&&<span className="connect-status requested"><Clock3/>Requested</span>}{person.status==="incoming"&&<><button type="button" className="connect-primary compact" onClick={onAccept} disabled={busy} aria-label={`Accept connection from ${person.name}`}>{busy?<LoaderCircle className="spin"/>:<><Check/>Accept</>}</button><button type="button" className="connect-secondary" onClick={onDecline} disabled={busy} aria-label={`Decline connection from ${person.name}`}><X/></button></>}{person.status==="connected"&&<><span className="connect-status"><Check/>Connected</span><button type="button" className="connect-chat" onClick={onChat} disabled={busy} aria-label={`Chat with ${person.name}`}>{busy?<LoaderCircle className="spin"/>:<MessageCircle/>}</button></>}</div>
+  </article>;
 }
