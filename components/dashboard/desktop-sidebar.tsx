@@ -15,7 +15,7 @@ export function DesktopSidebar({mobileOpen=false,onClose,active="global"}:{mobil
     <aside className={`dating-sidebar ${mobileOpen?"mobile-open":""} ${collapsed?"collapsed":"expanded"}`}>
       <div className="dashboard-sidebar-brand"><button className="dashboard-sidebar-toggle" type="button" onClick={toggleCollapsed} aria-expanded={!collapsed} aria-label={collapsed?"Show menu names":"Show icons only"}>{collapsed?<PanelLeftOpen/>:<PanelLeftClose/>}<span>{collapsed?"Expand menu":"Collapse menu"}</span></button><button className="dashboard-sidebar-mobile-close" onClick={onClose} aria-label="Close navigation"><X/></button></div>
       <nav aria-label="Dashboard navigation">
-        <a className={active==="global"?"active":undefined} href="/dashboard"><Globe2/><span>Global</span></a>
+        <a className={active==="global"?"active":undefined} href="/global"><Globe2/><span>Global</span></a>
         <a className={active==="connect"?"active":undefined} href="/discover"><UsersRound/><span>Connect</span></a>
         <Link className={active==="matches"?"active":undefined} href="/matches"><Heart/><span>Matches</span></Link>
         <Link className={active==="chats"?"active":undefined} href="/chats"><MessageCircle/><span>Chats</span></Link>
