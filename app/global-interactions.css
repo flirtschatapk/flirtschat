@@ -1,0 +1,28 @@
+.fc-global-post-actions{display:flex;align-items:center;gap:5px;margin:15px -4px -3px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07)}
+.fc-global-post-actions button{min-width:0;min-height:40px;display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:1;border:0;border-radius:11px;background:transparent;color:#9b92a5;font-size:11px;font-weight:700}
+.fc-global-post-actions button:hover,.fc-global-post-actions button:focus-visible{background:rgba(184,92,255,.09);color:#eee7f3}
+.fc-global-post-actions button svg{width:19px;height:19px}
+.fc-global-post-actions button.hearted{color:#ff4f91;animation:fc-global-heart-pop .25s ease-out}
+.fc-global-post-actions button.saved{color:#b870ff}
+.fc-global-post-actions button:disabled{opacity:.55}
+@keyframes fc-global-heart-pop{50%{transform:scale(1.14)}}
+.fc-global-comments{margin-top:11px;padding:11px;border-radius:15px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.06)}
+.fc-global-comments form{display:flex;align-items:center;gap:7px}
+.fc-global-comments input{min-width:0;flex:1;height:40px;border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:0 13px;background:#09080e;color:#fff;outline:0;font-size:12px}
+.fc-global-comments input:focus{border-color:#a95cff;box-shadow:0 0 0 3px rgba(169,92,255,.1)}
+.fc-global-comments form button{width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:50%;background:linear-gradient(145deg,#ff3e9e,#8b5cf6);color:#fff}
+.fc-global-comments form button:disabled{opacity:.4}
+.fc-global-comments form svg{width:16px}
+.fc-global-comment{display:flex;align-items:flex-start;gap:8px;margin-top:12px}
+.fc-global-comment>.profile-image{width:32px;height:32px;flex:none;border-radius:50%;overflow:hidden}
+.fc-global-comment>div{min-width:0;flex:1;padding:7px 10px;border-radius:12px;background:rgba(255,255,255,.045)}
+.fc-global-comment strong{font-size:11px;color:#d7b9ff}
+.fc-global-comment p{margin:3px 0;color:#f2edf4;font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+.fc-global-comment small{color:#80778a;font-size:9px}
+.fc-global-comment>button{width:28px;height:28px;margin-top:4px;border:0;background:transparent;color:#817689}
+.fc-global-comment-error{margin:8px 0 0;color:#ff8296;font-size:11px}
+.fc-global-comment-loading{display:block;margin:11px 0;color:#92879c;font-size:11px}
+.fc-global-more-comments{width:100%;margin-top:11px;border:0;background:transparent;color:#c08aff;font-size:11px;font-weight:700}
+.fc-global-more-comments:disabled{opacity:.55}
+@media(max-width:700px){.fc-global-post-actions{gap:2px}.fc-global-post-actions button{gap:4px;font-size:10px}.fc-global-post-actions button svg{width:18px;height:18px}}
+.fc-global-feed-header .fc-global-back{width:40px;height:40px;margin-right:10px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.04);color:#fff}.fc-global-feed-header .fc-global-back svg{width:18px}

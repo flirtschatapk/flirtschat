@@ -1,4 +1,4 @@
-export type NotificationType="likes"|"super_like"|"messages"|"gift"|"visitor"|"match"|"system"|"security"|"premium"|"mentions"|"connection_accepted";
+export type NotificationType="likes"|"super_like"|"messages"|"gift"|"visitor"|"match"|"system"|"security"|"premium"|"mentions"|"connection_accepted"|"post_comment";
 export type NotificationFilter="all"|"likes"|"messages"|"system"|"mentions";
 
 export type FlirtschatNotification={
