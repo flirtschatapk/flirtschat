@@ -33,6 +33,7 @@ export function DiscoverExperience(){
   const [error,setError]=useState("");
   const [actionError,setActionError]=useState("");
   const [busyId,setBusyId]=useState<string|null>(null);
+  const hiddenRequested=useRef(new Set<string>());
 
   const load=useCallback(async(reset=true,cursor:{createdAt:string;id:string}|null=null)=>{
     if(!user?.id)return;
@@ -40,7 +41,8 @@ export function DiscoverExperience(){
     setError("");
     try{
       const page=await getConnectPeople(filter,search,reset?null:cursor);
-      setPeople(current=>reset?page.people:[...current,...page.people.filter(next=>!current.some(existing=>existing.id===next.id))]);
+      const visiblePage=page.people.filter(person=>person.status!=="requested"&&(!hiddenRequested.current.has(person.id)||person.status==="none"));
+      setPeople(current=>reset?visiblePage:[...current,...visiblePage.filter(next=>!current.some(existing=>existing.id===next.id))]);
       setHasMore(page.hasMore);setBefore(page.nextBefore);
     }catch{setError("We couldn't load people right now.")}
     finally{setLoading(false);setLoadingMore(false)}
@@ -57,9 +59,9 @@ export function DiscoverExperience(){
   const updatePerson=(id:string,changes:Partial<ConnectPerson>)=>setPeople(current=>current.map(person=>person.id===id?{...person,...changes}:person));
   const connect=async(person:ConnectPerson)=>{
     if(lock.current||busyId)return;lock.current=true;setBusyId(person.id);setActionError("");
-    const previous={status:person.status,connectionId:person.connectionId};updatePerson(person.id,{status:"requested"});
-    try{const result=await requestConnection(person.id);updatePerson(person.id,{status:result.status,connectionId:result.id})}
-    catch{updatePerson(person.id,previous);setActionError("Could not send the connection request. Try again.")}
+    const previous={status:person.status,connectionId:person.connectionId};const index=people.findIndex(item=>item.id===person.id);hiddenRequested.current.add(person.id);setPeople(current=>current.filter(item=>item.id!==person.id));
+    try{await requestConnection(person.id)}
+    catch{hiddenRequested.current.delete(person.id);setPeople(current=>{if(current.some(item=>item.id===person.id))return current;const next=[...current];next.splice(Math.min(index,next.length),0,person);return next});updatePerson(person.id,previous);setActionError("Could not send the connection request. Try again.")}
     finally{lock.current=false;setBusyId(null)}
   };
   const accept=async(person:ConnectPerson)=>{
