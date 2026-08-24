@@ -13,3 +13,16 @@
 .fc-global-post-image{max-height:none;margin-top:14px;border-radius:2px;object-fit:contain;background:#08070d}
 .fc-global-post-actions button,.fc-global-post-actions button:hover,.fc-global-post-actions button:focus,.fc-global-post-actions button:active{text-decoration:none}
 @media(max-width:700px){.fc-global-feed-page{padding:10px 0 calc(82px + env(safe-area-inset-bottom))}.fc-global-feed-shell{width:100%}.fc-global-feed-header{padding-inline:14px}.fc-global-composer{margin-inline:10px;width:calc(100% - 20px)}.fc-global-post-card{padding:16px 0}.fc-global-post-card>header,.fc-global-post-copy,.fc-global-post-actions{margin-inline:14px}.fc-global-post-image{width:100%;margin-top:13px}.fc-global-post-actions{margin-left:10px;margin-right:10px}}
+
+/* Lightweight social composer row. The existing modal/file flow remains unchanged. */
+.fc-global-composer{min-height:68px;width:100%;display:flex;align-items:center;gap:10px;margin:0 0 16px;padding:0;border:0;background:transparent;box-shadow:none}
+.fc-global-composer-avatar,.fc-global-composer-pill,.fc-global-composer-image{border:0;background:transparent;color:inherit;text-decoration:none;cursor:pointer}
+.fc-global-composer-avatar{display:grid;place-items:center;flex:none;width:48px;height:48px;padding:0;border-radius:50%}
+.fc-global-composer-avatar:focus-visible,.fc-global-composer-pill:focus-visible,.fc-global-composer-image:focus-visible{outline:0;box-shadow:0 0 0 2px rgba(196,104,255,.65),0 0 18px rgba(255,63,158,.16)}
+.fc-global-composer-avatar>.profile-image{width:48px;height:48px;border-radius:50%;overflow:hidden}
+.fc-global-composer-pill{min-width:0;flex:1;height:52px;display:flex;align-items:center;padding:0 20px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:#111018;color:#92899d;text-align:left;font-size:14px}
+.fc-global-composer-pill:hover{border-color:rgba(184,92,255,.42);background:#15121d}
+.fc-global-composer-image{flex:none;width:44px;height:44px;display:grid;place-items:center;border-radius:12px;color:#aaa1ae}
+.fc-global-composer-image svg{width:24px;height:24px}
+.fc-global-composer-image:hover{color:#d59aff;background:rgba(184,92,255,.08)}
+@media(max-width:700px){.fc-global-composer{min-height:60px;margin:0 10px 12px;width:calc(100% - 20px);gap:8px}.fc-global-composer-avatar,.fc-global-composer-avatar>.profile-image{width:46px;height:46px}.fc-global-composer-pill{height:48px;padding-inline:16px;font-size:13px}.fc-global-composer-image{width:42px;height:42px}}
