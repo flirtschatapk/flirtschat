@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = { title: "Dashboard", description: "Your Flirtschat connections." };
-export default function DashboardPage() { return <DashboardShell />; }
+export default function DashboardPage() { redirect("/global"); }

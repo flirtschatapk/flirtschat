@@ -29,7 +29,7 @@ export async function GET(request:Request){
     if(lookupError)throw lookupError;
     debug("profile lookup",{profileFound:Boolean(existing),onboardingComplete:Boolean(existing?.onboarding_completed)});
     if(!existing){await ensureInitialProfile(user,supabase);debug("minimum profile created",{userId:user.id})}
-    const destination=existing?.onboarding_completed?"/dashboard":await getPostAuthDestination(user.id,supabase);
+    const destination=existing?.onboarding_completed?"/global":await getPostAuthDestination(user.id,supabase);
     debug("destination selected",{destination});
     return redirectWithCookies(destination);
   }catch(error){

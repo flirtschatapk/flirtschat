@@ -65,7 +65,7 @@ export function SettingsPage(){
   const [profile,setProfile]=useState<CurrentProfile|null>(null);
   const [activeSection,setActiveSection]=useState("account");
 
-  const backToDashboard=()=>{if(process.env.NODE_ENV==="development")console.info("[AuthTrace] click back-to-dashboard");router.push("/dashboard")};
+  const backToDashboard=()=>{if(process.env.NODE_ENV==="development")console.info("[AuthTrace] click back-to-global");router.push("/global")};
 
   useEffect(()=>{
     getCurrentProfile().then(value=>{setProfile(value);setPremium(value.premium)}).catch(()=>setFeatureNotice("We couldn't load your profile."));
@@ -103,7 +103,7 @@ export function SettingsPage(){
 
   return <main className="settings-page">
     <header className="settings-topbar">
-      <div className="settings-heading"><button type="button" className="settings-back" onClick={backToDashboard} aria-label="Back to dashboard"><ArrowLeft/><span className="settings-back-desktop">Back to Dashboard</span><span className="settings-back-mobile">Back</span></button><div><h1>Settings</h1><p>Manage your account, privacy and preferences <span>♥</span></p></div></div>
+      <div className="settings-heading"><button type="button" className="settings-back" onClick={backToDashboard} aria-label="Back to Global"><ArrowLeft/><span className="settings-back-desktop">Back to Global</span><span className="settings-back-mobile">Back</span></button><div><h1>Settings</h1><p>Manage your account, privacy and preferences <span>♥</span></p></div></div>
       <Link className="settings-bell settings-header-gear metallic-setting-icon violet" href="/settings" aria-label="Settings"><Settings/></Link>
     </header>
 
