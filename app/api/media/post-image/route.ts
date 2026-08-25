@@ -14,7 +14,7 @@ export async function GET(request:Request){
   try{
     const url=await getSignedUrl(getR2Client(),new GetObjectCommand({Bucket:getPrivateBucket(),Key:key}),{expiresIn:120});
     const response=NextResponse.redirect(url,307);
-    response.headers.set("Cache-Control","private, no-store");
+    response.headers.set("Cache-Control","private, max-age=60, stale-while-revalidate=30");
     return response;
   }catch(error){
     console.error("Global post image signing failed",{name:error instanceof Error?error.name:"UnknownError"});
