@@ -69,3 +69,27 @@
 .fc-global-report-reasons button{min-height:40px;padding:0 11px;border:1px solid rgba(255,255,255,.1);border-radius:10px;background:rgba(255,255,255,.035);color:#c9c0cf;text-align:left;font-size:11px}
 .fc-global-report-reasons button:hover,.fc-global-report-reasons button:focus-visible,.fc-global-report-reasons button.selected{border-color:rgba(184,92,255,.55);background:rgba(184,92,255,.12);color:#fff;outline:0}
 @media(max-width:700px){.fc-global-post-menu [role=menu]{position:absolute;top:42px;right:0;max-width:calc(100vw - 20px)}.fc-global-confirm-modal{width:100%;align-self:end;border-radius:20px 20px 0 0;padding:16px 14px calc(16px + env(safe-area-inset-bottom))}.fc-global-modal-backdrop{align-items:end;padding:0}}
+
+/* Desktop Global layout: existing fixed sidebar, centered feed, and a real-data rail. */
+.fc-global-desktop-rail{display:none}
+@media(min-width:1200px){
+  .fc-global-feed-page{display:grid;grid-template-columns:minmax(0,920px) minmax(240px,280px);align-items:start;justify-content:center;gap:28px;min-height:100svh;padding:24px 24px 72px 250px}
+  .fc-global-feed-page:has(.fc-global-detail-shell){grid-template-columns:minmax(0,920px)}
+  .fc-global-feed-shell{grid-column:1;width:100%;margin:0}
+  .fc-global-desktop-rail{grid-column:2;display:grid;gap:14px;position:sticky;top:24px;width:100%;padding-top:2px}
+  .fc-global-rail-profile,.fc-global-rail-actions{padding:16px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(15,11,22,.72);box-shadow:0 12px 28px rgba(0,0,0,.18)}
+  .fc-global-rail-label{display:block;margin-bottom:12px;color:#82788e;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+  .fc-global-rail-profile-link{display:flex;align-items:center;gap:10px;color:#f7effa;text-decoration:none}
+  .fc-global-rail-profile-link .profile-image{width:48px;height:48px;flex:none;border:1px solid rgba(184,92,255,.45);border-radius:50%;overflow:hidden}
+  .fc-global-rail-profile-link span{min-width:0;display:grid;gap:4px}
+  .fc-global-rail-profile-link strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+  .fc-global-rail-profile-link small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#92899d;font-size:10px}
+  .fc-global-rail-actions{display:grid;gap:5px}
+  .fc-global-rail-actions .fc-global-rail-label{margin-bottom:5px}
+  .fc-global-rail-actions a{position:relative;display:flex;align-items:center;gap:9px;min-height:40px;padding:0 8px;border-radius:10px;color:#c1b7c9;font-size:12px;text-decoration:none}
+  .fc-global-rail-actions a:hover,.fc-global-rail-actions a:focus-visible{background:rgba(184,92,255,.1);color:#fff;outline:0}
+  .fc-global-rail-actions a svg{width:17px;height:17px}
+  .fc-global-rail-actions a:first-of-type svg{color:#f5c84f}
+  .fc-global-rail-actions a .fc-notification-badge{margin-left:auto;position:static;transform:none}
+}
+@media(min-width:1024px) and (max-width:1199px){.fc-global-feed-page{padding-left:250px;padding-right:24px}.fc-global-feed-shell{width:min(760px,100%);margin:0 auto}}
