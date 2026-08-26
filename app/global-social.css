@@ -46,3 +46,26 @@
 @media(max-width:1023px){.fc-global-feed-page{padding:0 16px calc(72px + env(safe-area-inset-bottom))}.fc-global-app-header{height:64px;padding:0 2px}}
 @media(max-width:700px){.fc-global-feed-page{padding:0 0 calc(82px + env(safe-area-inset-bottom))}.fc-global-app-header{height:60px;padding:0 12px}.fc-global-app-actions{gap:6px}.fc-global-app-action,.fc-global-app-profile{width:36px;height:36px}.fc-global-app-brand img{width:29px;height:29px}.fc-global-app-brand span{font-size:17px}.fc-global-app-action svg{width:19px;height:19px}}
 @media(min-width:1024px){.fc-global-app-header{display:none}}
+.fc-global-post-actions-menu{min-width:190px;max-width:min(240px,calc(100vw - 24px))}
+.fc-global-post-menu [role=menu] a{width:100%;min-height:38px;display:flex;align-items:center;gap:8px;padding:0 9px;border-radius:9px;text-align:left;color:#f0eaf4;font-size:11px;text-decoration:none}
+.fc-global-post-menu [role=menu] a:hover,.fc-global-post-menu [role=menu] a:focus-visible{background:rgba(255,255,255,.07);color:#fff;outline:0}
+.fc-global-post-menu [role=menu] button svg,.fc-global-post-menu [role=menu] a svg{width:15px;height:15px;flex:none}
+.fc-global-post-menu [role=menu] button.caution{color:#f2bd87}
+.fc-global-post-menu [role=menu] button.danger{color:#ff8295}
+.fc-global-menu-divider{display:block;height:1px;margin:5px 3px;background:rgba(255,255,255,.1)}
+.fc-global-confirm-modal{width:min(440px,100%);border:1px solid rgba(184,92,255,.25);border-radius:20px;padding:18px;background:#0b0911;color:#f8f4fb;box-shadow:0 25px 80px rgba(0,0,0,.6),0 0 40px rgba(177,71,224,.12)}
+.fc-global-confirm-modal>header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.fc-global-confirm-modal>header button{width:38px;height:38px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.1);border-radius:11px;background:rgba(255,255,255,.05);color:#fff}
+.fc-global-confirm-modal>header button svg{width:17px}
+.fc-global-confirm-modal>p{margin:12px 0 0;color:#a59aaa;font-size:12px;line-height:1.5}
+.fc-global-confirm-modal>footer{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.fc-global-confirm-modal>footer button{min-height:42px;padding:0 14px;border:1px solid rgba(255,255,255,.12);border-radius:11px;background:rgba(255,255,255,.05);color:#eee7f3;font-weight:700}
+.fc-global-confirm-modal>footer button:last-child{border-color:rgba(184,92,255,.35);background:linear-gradient(100deg,#ff3e9e,#8b5cf6);color:#fff}
+.fc-global-confirm-modal>footer button.danger{border-color:rgba(255,91,111,.35);background:rgba(215,55,78,.16);color:#ff8295}
+.fc-global-edit-modal textarea,.fc-global-report-modal textarea{display:block;width:100%;min-height:140px;margin-top:16px;resize:vertical;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:13px;background:#08070d;color:#fff;outline:0;font:inherit;font-size:13px}
+.fc-global-edit-modal textarea:focus,.fc-global-report-modal textarea:focus{border-color:#a95cff;box-shadow:0 0 0 3px rgba(169,92,255,.12)}
+.fc-global-report-modal>p{margin-bottom:12px}
+.fc-global-report-reasons{display:grid;gap:6px}
+.fc-global-report-reasons button{min-height:40px;padding:0 11px;border:1px solid rgba(255,255,255,.1);border-radius:10px;background:rgba(255,255,255,.035);color:#c9c0cf;text-align:left;font-size:11px}
+.fc-global-report-reasons button:hover,.fc-global-report-reasons button:focus-visible,.fc-global-report-reasons button.selected{border-color:rgba(184,92,255,.55);background:rgba(184,92,255,.12);color:#fff;outline:0}
+@media(max-width:700px){.fc-global-post-menu [role=menu]{position:absolute;top:42px;right:0;max-width:calc(100vw - 20px)}.fc-global-confirm-modal{width:100%;align-self:end;border-radius:20px 20px 0 0;padding:16px 14px calc(16px + env(safe-area-inset-bottom))}.fc-global-modal-backdrop{align-items:end;padding:0}}

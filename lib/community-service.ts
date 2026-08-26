@@ -1,11 +1,11 @@
 import {createClient} from "@/lib/supabase/client";
 
-export const reportCategories=["Fake Profile","Spam","Scam","Harassment","Nudity","Hate Speech","Underage","Other"] as const;
+export const reportCategories=["Fake Profile","Spam","Scam","Scam or Fake Profile","Harassment","Harassment or Bullying","Nudity","Nudity or Sexual Content","Hate Speech","Violence or Threats","Underage","Something Else","Other"] as const;
 export type ReportCategory=(typeof reportCategories)[number];
 export type CommunityProfile={id:string;display_name:string;username:string;last_seen_at:string;premium:boolean};
 
 export async function currentUser(){const supabase=createClient();const {data:{user}}=await supabase.auth.getUser();if(!user)throw new Error("Please sign in to continue.");return user}
-export async function reportUser(reportedId:string,category:ReportCategory,details:string,photoId?:string,evidenceObjectKey?:string){const supabase=createClient(),user=await currentUser();const {error}=await supabase.from("fc_reports").insert({reporter_id:user.id,reported_id:reportedId,category,details,photo_id:photoId||null,evidence_object_key:evidenceObjectKey||null});if(error)throw error}
+export async function reportUser(reportedId:string,category:ReportCategory,details:string,photoId?:string,evidenceObjectKey?:string,postId?:string){const supabase=createClient(),user=await currentUser();const {error}=await supabase.from("fc_reports").insert({reporter_id:user.id,reported_id:reportedId,post_id:postId||null,category,details,photo_id:photoId||null,evidence_object_key:evidenceObjectKey||null});if(error)throw error}
 export async function blockUser(blockedId:string,reason="Safety block"){const supabase=createClient(),user=await currentUser();const {error}=await supabase.from("fc_blocks").upsert({blocker_id:user.id,blocked_id:blockedId,reason},{onConflict:"blocker_id,blocked_id"});if(error)throw error}
 export async function unblockUserRemote(blockedId:string){const supabase=createClient(),user=await currentUser();const {error}=await supabase.from("fc_blocks").delete().eq("blocker_id",user.id).eq("blocked_id",blockedId);if(error)throw error}
 export async function recordVisit(viewedId:string){const supabase=createClient();const {error}=await supabase.rpc("fc_record_profile_visit",{viewed:viewedId});if(error)throw error}

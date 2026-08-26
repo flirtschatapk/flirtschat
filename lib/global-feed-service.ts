@@ -31,10 +31,7 @@ export type GlobalCursor={createdAt:string;id:string};
 export function postImageUrl(imageKey:string){return `/api/media/post-image?key=${encodeURIComponent(imageKey)}`}
 
 export async function loadGlobalPosts(cursor?:GlobalCursor){
-  const supabase=createClient();
-  let query=supabase.from("fc_posts").select("id,user_id,body,image_key,created_at").order("created_at",{ascending:false}).order("id",{ascending:false}).limit(GLOBAL_PAGE_SIZE);
-  if(cursor)query=query.or(`created_at.lt.${cursor.createdAt},and(created_at.eq.${cursor.createdAt},id.lt.${cursor.id})`);
-  const{data,error}=await query;
+  const{data,error}=await createClient().rpc("fc_get_global_posts",{requested_limit:GLOBAL_PAGE_SIZE,cursor_created_at:cursor?.createdAt??null,cursor_id:cursor?.id??null});
   if(error)throw error;
   return addInteractions(await hydratePosts((data??[]) as PostRow[]));
 }
@@ -108,5 +105,16 @@ export async function deletePostComment(commentId:string){const{error}=await cre
 
 export async function deleteGlobalPost(id:string){
   const{error}=await createClient().from("fc_posts").delete().eq("id",id);
+  if(error)throw error;
+}
+
+export async function updateGlobalPost(id:string,body:string|null){
+  const{data,error}=await createClient().from("fc_posts").update({body}).eq("id",id).select("id,user_id,body,image_key,created_at").single();
+  if(error)throw error;
+  return data as PostRow;
+}
+
+export async function hideGlobalPost(id:string){
+  const{error}=await createClient().rpc("fc_hide_global_post",{requested_post:id});
   if(error)throw error;
 }
