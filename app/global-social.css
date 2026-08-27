@@ -14,6 +14,17 @@
 .fc-global-post-actions button,.fc-global-post-actions button:hover,.fc-global-post-actions button:focus,.fc-global-post-actions button:active{text-decoration:none}
 @media(max-width:700px){.fc-global-feed-page{padding:10px 0 calc(82px + env(safe-area-inset-bottom))}.fc-global-feed-shell{width:100%}.fc-global-feed-header{padding-inline:14px}.fc-global-composer{margin-inline:10px;width:calc(100% - 20px)}.fc-global-post-card{padding:16px 0}.fc-global-post-card>header,.fc-global-post-copy,.fc-global-post-actions{margin-inline:14px}.fc-global-post-image{width:100%;margin-top:13px}.fc-global-post-actions{margin-left:10px;margin-right:10px}}
 
+/* Reserve media space before private bytes arrive so feed text and actions do
+   not move as images decode. */
+.fc-global-post-media{position:relative;width:100%;aspect-ratio:4 / 3;margin-top:14px;overflow:hidden;background:#08070d}
+.fc-global-post-media .fc-global-post-image{position:relative;width:100%;height:100%;max-height:none;margin:0;object-fit:contain;opacity:0;transition:opacity .16s ease}
+.fc-global-post-media.is-loaded .fc-global-post-image{opacity:1}
+.fc-global-post-image-skeleton{position:absolute;inset:0;background:linear-gradient(105deg,#0a0910 12%,#171220 30%,#0a0910 52%);background-size:220% 100%;animation:fc-global-image-shimmer 1.25s linear infinite}
+.fc-global-post-image-fallback{position:absolute;inset:0;display:grid;place-items:center;color:#746a7c;font-size:11px;background:#0b0911}
+.fc-global-post-media.is-failed{background:#0b0911}
+@keyframes fc-global-image-shimmer{to{background-position:-220% 0}}
+@media(prefers-reduced-motion:reduce){.fc-global-post-image-skeleton{animation:none}.fc-global-post-media .fc-global-post-image{transition:none}}
+
 /* Lightweight social composer row. The existing modal/file flow remains unchanged. */
 .fc-global-composer{min-height:68px;width:100%;display:flex;align-items:center;gap:10px;margin:0 0 16px;padding:0;border:0;background:transparent;box-shadow:none}
 .fc-global-composer-avatar,.fc-global-composer-pill,.fc-global-composer-image{border:0;background:transparent;color:inherit;text-decoration:none;cursor:pointer}
